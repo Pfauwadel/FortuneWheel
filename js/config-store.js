@@ -13,6 +13,7 @@
     const FALLBACK_CONFIG = {
         settings: {
             title: 'Roue de la Fortune',
+            hubText: 'KUHN',
             spinMinTurns: 5,
             spinMaxTurns: 10,
             resultDisplayMs: 3000,

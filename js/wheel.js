@@ -3,6 +3,7 @@
     const spinButton = document.getElementById('spin');
     const resultDiv = document.getElementById('result');
     const brandEl = document.getElementById('wheel-brand');
+    const hubEl = document.getElementById('wheel-hub');
     const pointerEl = document.getElementById('pointer');
     const tickerTrack = document.getElementById('ticker-track');
 
@@ -346,6 +347,7 @@
         const title = settings.title || 'Roue de la Fortune';
         if (brandEl) brandEl.textContent = title;
         document.title = title;
+        if (hubEl) hubEl.textContent = settings.hubText || 'KUHN';
 
         const root = document.documentElement.style;
         root.setProperty('--accent-color', accentColor);

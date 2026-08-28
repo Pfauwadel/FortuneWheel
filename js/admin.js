@@ -7,6 +7,7 @@
 
     const el = {
         title: document.getElementById('setting-title'),
+        hubText: document.getElementById('setting-hub-text'),
         minTurns: document.getElementById('setting-min-turns'),
         maxTurns: document.getElementById('setting-max-turns'),
         displayMs: document.getElementById('setting-display-ms'),
@@ -255,6 +256,7 @@
 
     function renderAll() {
         el.title.value = currentConfig.settings.title;
+        el.hubText.value = currentConfig.settings.hubText;
         el.minTurns.value = currentConfig.settings.spinMinTurns;
         el.maxTurns.value = currentConfig.settings.spinMaxTurns;
         el.displayMs.value = currentConfig.settings.resultDisplayMs;
@@ -279,6 +281,7 @@
 
     function readFormIntoConfig() {
         currentConfig.settings.title = el.title.value.trim() || 'Roue de la Fortune';
+        currentConfig.settings.hubText = el.hubText.value.trim() || 'KUHN';
         currentConfig.settings.spinMinTurns = Number(el.minTurns.value) || 5;
         currentConfig.settings.spinMaxTurns = Math.max(
             currentConfig.settings.spinMinTurns,
