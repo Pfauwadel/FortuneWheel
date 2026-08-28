@@ -18,8 +18,16 @@
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('sw.js')
-                    .then((registration) => console.log('SW enregistré : ', registration))
+                    .then((registration) => registration.update())
                     .catch((error) => console.log('Échec SW : ', error));
+            });
+            // Écran public sans saisie utilisateur : on peut se recharger
+            // automatiquement dès qu'une nouvelle version est disponible.
+            let refreshing = false;
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+                if (refreshing) return;
+                refreshing = true;
+                window.location.reload();
             });
         }
     </script>

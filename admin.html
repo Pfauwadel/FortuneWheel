@@ -12,7 +12,12 @@
     <link rel="stylesheet" href="css/admin.css">
     <script>
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => navigator.serviceWorker.register('sw.js'));
+            // Pas de rechargement automatique ici : un admin en train de
+            // modifier la configuration ne doit jamais se faire recharger
+            // la page (et perdre sa saisie) sans action explicite.
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').then((reg) => reg.update());
+            });
         }
     </script>
 </head>

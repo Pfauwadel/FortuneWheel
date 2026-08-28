@@ -4,7 +4,7 @@
 //
 // Incrémenter CACHE_NAME force la mise à jour complète du cache lors du
 // prochain déploiement (ex: passer à 'kuhn-wheel-v2').
-const CACHE_NAME = 'kuhn-wheel-v5';
+const CACHE_NAME = 'kuhn-wheel-v6';
 
 const urlsToCache = [
     './',
@@ -48,25 +48,24 @@ self.addEventListener('activate', (event) => {
     );
 });
 
-// Stratégie "cache d'abord, réseau en secours" : répond instantanément
-// depuis le cache (donc hors-ligne), puis met le cache à jour en tâche de
-// fond si le réseau est disponible, pour la prochaine ouverture.
+// Stratégie "réseau d'abord, cache en secours" : va chercher la dernière
+// version sur le réseau (en forçant le contournement du cache HTTP du
+// navigateur avec cache:'no-store', sinon les modifications récentes
+// pouvaient rester invisibles jusqu'à un Ctrl+F5). Le cache n'est utilisé
+// que si le réseau est indisponible (mode hors-ligne), et reste à jour à
+// chaque requête réussie.
 self.addEventListener('fetch', (event) => {
     if (event.request.method !== 'GET') return;
 
     event.respondWith(
-        caches.match(event.request).then((cachedResponse) => {
-            const networkFetch = fetch(event.request)
-                .then((networkResponse) => {
-                    if (networkResponse && networkResponse.ok) {
-                        const clone = networkResponse.clone();
-                        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
-                    }
-                    return networkResponse;
-                })
-                .catch(() => cachedResponse);
-
-            return cachedResponse || networkFetch;
-        })
+        fetch(event.request, { cache: 'no-store' })
+            .then((networkResponse) => {
+                if (networkResponse && networkResponse.ok) {
+                    const clone = networkResponse.clone();
+                    caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+                }
+                return networkResponse;
+            })
+            .catch(() => caches.match(event.request))
     );
 });
