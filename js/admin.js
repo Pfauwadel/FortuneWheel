@@ -17,6 +17,7 @@
         themeGrid: document.getElementById('theme-grid'),
         brandColorInput: document.getElementById('brand-color-input'),
         generateThemeBtn: document.getElementById('generate-theme-btn'),
+        applyThemeBtn: document.getElementById('apply-theme-btn'),
         customPaletteSection: document.getElementById('custom-palette-section'),
         customPaletteHint: document.getElementById('custom-palette-hint'),
         paletteList: document.getElementById('palette-list'),
@@ -310,10 +311,10 @@
         el.previewFrame.src = 'wheel.html?t=' + Date.now();
     }
 
-    async function saveConfig() {
+    async function saveConfig(message) {
         readFormIntoConfig();
         CS.saveConfig(currentConfig);
-        showStatus('Configuration enregistrée sur ce poste.', 'success');
+        showStatus(message || 'Configuration enregistrée sur ce poste.', 'success');
         refreshPreview();
     }
 
@@ -383,7 +384,12 @@
             showStatus('Verrou PIN retiré.', 'success');
         });
 
-        el.saveBtn.addEventListener('click', saveConfig);
+        el.saveBtn.addEventListener('click', () => saveConfig());
+
+        el.applyThemeBtn.addEventListener('click', () => {
+            saveConfig('Thème appliqué et enregistré sur ce poste.');
+            el.previewFrame.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
 
         el.exportBtn.addEventListener('click', () => {
             readFormIntoConfig();
