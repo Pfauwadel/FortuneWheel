@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administration — Roue de la Fortune</title>
+    <link rel="icon" href="assets/favicon.png">
+    <link rel="stylesheet" href="css/admin.css">
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => navigator.serviceWorker.register('sw.js'));
+        }
+    </script>
+</head>
+
+<body>
+    <div id="status-banner"></div>
+
+    <header>
+        <h1>Administration — Roue de la Fortune</h1>
+        <a href="wheel.html">← Voir la roue</a>
+    </header>
+
+    <main>
+        <section>
+            <h2>Réglages généraux</h2>
+            <div class="field-row">
+                <div class="field">
+                    <label for="setting-title">Titre affiché</label>
+                    <input type="text" id="setting-title" placeholder="Roue de la Fortune">
+                </div>
+                <div class="field">
+                    <label for="setting-min-turns">Tours minimum</label>
+                    <input type="number" id="setting-min-turns" min="1" step="1">
+                </div>
+                <div class="field">
+                    <label for="setting-max-turns">Tours maximum</label>
+                    <input type="number" id="setting-max-turns" min="1" step="1">
+                </div>
+                <div class="field">
+                    <label for="setting-display-ms">Durée d'affichage du lot (ms)</label>
+                    <input type="number" id="setting-display-ms" min="500" step="100">
+                </div>
+            </div>
+
+            <div class="field">
+                <label>Palette de couleurs des segments (appliquée dans l'ordre)</label>
+                <div id="palette-list" class="field-row"></div>
+                <div class="toolbar">
+                    <button class="btn" id="add-color">+ Ajouter une couleur</button>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2>Segments (lots à gagner)</h2>
+            <table id="segments-table">
+                <thead>
+                    <tr>
+                        <th style="width:56px;">Image</th>
+                        <th>Description</th>
+                        <th style="width:120px;">Poids</th>
+                        <th style="width:110px;"></th>
+                    </tr>
+                </thead>
+                <tbody id="segments-body"></tbody>
+            </table>
+            <p class="hint">Le "poids" détermine la probabilité relative du segment (ex : deux segments à poids 100 ont la même chance ; un segment à 50 a deux fois moins de chance qu'un segment à 100).</p>
+            <div class="toolbar">
+                <button class="btn btn-primary" id="add-segment">+ Ajouter un segment</button>
+            </div>
+        </section>
+
+        <section>
+            <h2>Sauvegarde &amp; distribution</h2>
+            <p class="hint">
+                « Enregistrer sur ce poste » stocke la configuration localement (localStorage) : elle reste
+                disponible hors-ligne sur cet ordinateur, y compris après réinstallation de l'application.
+                Pour changer la configuration par défaut vue par tout le monde sur le site public, exportez le
+                fichier puis remplacez <code>config.json</code> dans le dépôt GitHub.
+            </p>
+            <div class="toolbar">
+                <button class="btn btn-primary" id="save-btn">💾 Enregistrer sur ce poste</button>
+                <button class="btn" id="export-btn">⬇ Exporter (config.json)</button>
+                <label class="btn" for="import-input" style="margin:0;">⬆ Importer un fichier</label>
+                <input type="file" id="import-input" accept="application/json" style="display:none;">
+                <button class="btn btn-danger" id="reset-btn">↺ Réinitialiser (config par défaut)</button>
+            </div>
+        </section>
+
+        <section>
+            <h2>Aperçu en direct</h2>
+            <iframe id="preview-frame" src="wheel.html"></iframe>
+            <div class="toolbar">
+                <button class="btn" id="refresh-preview">🔄 Actualiser l'aperçu</button>
+            </div>
+        </section>
+    </main>
+
+    <script src="js/config-store.js"></script>
+    <script src="js/admin.js"></script>
+</body>
+
+</html>

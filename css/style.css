@@ -1,0 +1,214 @@
+body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    margin: 0;
+    background-color: #f0f0f0;
+    overflow: hidden;
+}
+
+.geometric-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    z-index: 1;
+}
+
+.shape {
+    position: absolute;
+    opacity: 0.2;
+    transform-origin: center;
+}
+
+.square {
+    width: 40px;
+    height: 40px;
+    background: #ee3126;
+    animation: rotate 20s infinite linear;
+}
+
+.circle {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: #4a4a4a;
+    animation: pulse 15s infinite alternate;
+}
+
+.triangle {
+    width: 0;
+    height: 0;
+    border-left: 25px solid transparent;
+    border-right: 25px solid transparent;
+    border-bottom: 50px solid #d0b580;
+    animation: float 12s infinite ease-in-out;
+}
+
+.rectangle {
+    width: 80px;
+    height: 30px;
+    background: #2e3440;
+    animation: slide 18s infinite linear;
+}
+
+@keyframes rotate {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); opacity: 0.1; }
+    50% { transform: scale(1.5); opacity: 0.3; }
+    100% { transform: scale(1); opacity: 0.1; }
+}
+
+@keyframes float {
+    0% { transform: translateY(0px) translateX(0px) rotate(0deg); }
+    50% { transform: translateY(-20px) translateX(20px) rotate(180deg); }
+    100% { transform: translateY(0px) translateX(0px) rotate(360deg); }
+}
+
+@keyframes slide {
+    0% { transform: translateX(-100px) rotate(0deg); }
+    50% { transform: translateX(100px) rotate(180deg); }
+    100% { transform: translateX(-100px) rotate(360deg); }
+}
+
+.particles {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+}
+
+.particle {
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    background-color: #ee3126;
+    opacity: 0.5;
+    animation: sparkle 8s infinite linear;
+}
+
+@keyframes sparkle {
+    0% { opacity: 0; }
+    50% { opacity: 0.8; }
+    100% { opacity: 0; }
+}
+
+.gradient-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at center, transparent 0%, #2e3440 80%);
+    z-index: 5;
+    animation: pulse-overlay 10s infinite alternate;
+}
+
+@keyframes pulse-overlay {
+    0% { opacity: 0.8; }
+    100% { opacity: 1; }
+}
+
+#wheel-title {
+    position: relative;
+    z-index: 10;
+    color: #2e3440;
+    text-shadow: 0 1px 2px rgba(255,255,255,0.6);
+    margin: 0 0 10px 0;
+    text-align: center;
+}
+
+#wheel-container {
+    position: relative;
+    width: 80vmin;
+    height: 80vmin;
+}
+
+#wheel {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    overflow: hidden;
+    transition: transform 3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    transform-origin: center;
+}
+
+#pointer {
+    position: absolute;
+    top: -3vmin;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 3vmin solid transparent;
+    border-right: 3vmin solid transparent;
+    border-top: 6vmin solid red;
+    z-index: 10;
+}
+
+#spin {
+    margin-top: 20px;
+    padding: 10px 20px;
+    font-size: 18px;
+    background-color: #ee3126;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    z-index: 10;
+}
+
+#spin:hover {
+    background-color: #990033;
+}
+
+#spin:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+
+#result {
+    position: relative;
+    z-index: 10;
+    margin-top: 20px;
+    font-size: 24px;
+    font-weight: bold;
+    min-height: 30px;
+}
+
+#gift-overlay {
+    z-index: 11;
+}
+
+.admin-link {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    z-index: 20;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(46, 52, 64, 0.75);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    text-decoration: none;
+}
+
+.admin-link:hover {
+    background: rgba(46, 52, 64, 0.95);
+}

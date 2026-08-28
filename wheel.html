@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roue de la Fortune</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="assets/favicon.png">
+    <link rel="apple-touch-icon" href="assets/icon-192.png">
+    <meta name="theme-color" content="#2e3440">
+    <link rel="stylesheet" href="css/style.css">
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then((registration) => console.log('SW enregistré : ', registration))
+                    .catch((error) => console.log('Échec SW : ', error));
+            });
+        }
+    </script>
+</head>
+
+<body>
+    <div class="geometric-background" id="geometric-background"></div>
+    <div class="particles" id="particles"></div>
+    <div class="gradient-overlay"></div>
+
+    <a class="admin-link" href="admin.html" title="Administration">⚙</a>
+
+    <h1 id="wheel-title">Roue de la Fortune</h1>
+
+    <div id="wheel-container" style="z-index: 10;">
+        <div id="wheel"></div>
+        <div id="pointer"></div>
+    </div>
+    <button id="spin">Tourner la roue</button>
+    <div id="result"></div>
+
+    <script src="js/config-store.js"></script>
+    <script src="js/wheel.js"></script>
+    <script src="js/background.js"></script>
+</body>
+
+</html>

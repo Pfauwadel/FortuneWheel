@@ -1,0 +1,21 @@
+{
+  "settings": {
+    "title": "Roue de la Fortune",
+    "spinMinTurns": 5,
+    "spinMaxTurns": 10,
+    "resultDisplayMs": 3000,
+    "colors": ["#ee3126", "#4a4a4a", "#d0b580", "#000000", "#eeece0", "#2e3440"]
+  },
+  "segments": [
+    { "id": "seg-1", "description": "Stylo", "imageUrl": "assets/stylo.png", "weight": 100 },
+    { "id": "seg-2", "description": "Cup", "imageUrl": "assets/cup.png", "weight": 100 },
+    { "id": "seg-3", "description": "Porte clé", "imageUrl": "assets/portecle.png", "weight": 100 },
+    { "id": "seg-4", "description": "Cadeau mystère", "imageUrl": "assets/questionmark.png", "weight": 100 },
+    { "id": "seg-5", "description": "Stylo", "imageUrl": "assets/stylo.png", "weight": 100 },
+    { "id": "seg-6", "description": "Cup", "imageUrl": "assets/cup.png", "weight": 100 },
+    { "id": "seg-7", "description": "Porte clé", "imageUrl": "assets/portecle.png", "weight": 100 },
+    { "id": "seg-8", "description": "Stylo", "imageUrl": "assets/stylo.png", "weight": 100 },
+    { "id": "seg-9", "description": "Cup", "imageUrl": "assets/cup.png", "weight": 100 },
+    { "id": "seg-10", "description": "Porte clé", "imageUrl": "assets/portecle.png", "weight": 100 }
+  ]
+}

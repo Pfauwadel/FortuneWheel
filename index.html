@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roue de la Fortune — Présentation</title>
+    <link rel="icon" href="assets/favicon.png">
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="css/landing.css">
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => navigator.serviceWorker.register('sw.js'));
+        }
+    </script>
+</head>
+
+<body>
+    <div class="hero">
+        <img src="assets/icon-512.png" alt="Logo Roue de la Fortune">
+        <h1>Roue de la Fortune</h1>
+        <p>
+            Une roue de la fortune personnalisable, installable hors-ligne sur un poste,
+            avec une interface d'administration pour gérer les lots, les images et les réglages
+            sans toucher au code.
+        </p>
+    </div>
+
+    <div class="cta-row">
+        <a class="cta cta-primary" href="wheel.html">🎡 Lancer la roue</a>
+        <a class="cta cta-secondary" href="admin.html">⚙ Administration</a>
+    </div>
+
+    <div class="card">
+        <h2>Comment ça marche</h2>
+        <ul>
+            <li><strong>Roue</strong> : la page publique, animée, qui tire un lot au hasard.</li>
+            <li><strong>Administration</strong> : ajout/suppression de lots, images, poids (probabilité),
+                couleurs et réglages, avec aperçu en direct.</li>
+            <li>La configuration modifiée dans l'administration est enregistrée <strong>sur ce poste</strong>
+                (elle reste disponible hors-ligne). Elle peut aussi être exportée en fichier
+                <code>config.json</code> pour être versionnée dans le dépôt et devenir la valeur par défaut
+                pour tout le monde.</li>
+        </ul>
+    </div>
+
+    <div class="card">
+        <h2>Installer l'application hors-ligne sur un poste</h2>
+        <ol>
+            <li>Ouvrez <a href="wheel.html" style="color:#d0b580;">la roue</a> dans Chrome ou Edge.</li>
+            <li>Cliquez sur l'icône d'installation dans la barre d'adresse (ou menu ⋮ → « Installer l'application »).</li>
+            <li>Une fois installée, l'application se lance comme un programme normal, sans connexion internet.</li>
+        </ol>
+    </div>
+
+    <footer>
+        Code source disponible sur GitHub.
+    </footer>
+</body>
+
+</html>
