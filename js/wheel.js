@@ -385,8 +385,10 @@
         }, seconds * 1000);
     }
 
-    async function init() {
-        const config = await window.ConfigStore.loadConfig();
+    // Applique une config déjà résolue (venant du stockage normal, ou d'un
+    // brouillon envoyé en direct par admin.html pendant l'édition — voir
+    // l'écouteur "message" plus bas). Ne persiste jamais rien elle-même.
+    function applyConfig(config) {
         loadedConfig = config;
         settings = config.settings;
         segments = config.segments;
@@ -416,6 +418,23 @@
         generateWheel();
         resetIdleTimer();
     }
+
+    async function init() {
+        const config = await window.ConfigStore.loadConfig();
+        applyConfig(config);
+    }
+
+    // Aperçu en direct depuis admin.html : quand cette page est chargée dans
+    // l'iframe de l'admin, elle affiche instantanément tout brouillon reçu,
+    // sans jamais l'écrire en localStorage (seuls les boutons "Enregistrer"
+    // / "Appliquer le thème" de l'admin persistent réellement la config).
+    window.addEventListener('message', (event) => {
+        if (event.origin !== window.location.origin) return;
+        const data = event.data;
+        if (data && data.type === 'wheel:preview-config' && !isSpinning) {
+            applyConfig(window.ConfigStore.normalizeConfig(data.config));
+        }
+    });
 
     spinButton.addEventListener('click', spin);
 

@@ -94,6 +94,7 @@
                 renderThemeGrid();
                 el.customPaletteSection.style.display = 'none';
                 el.customPaletteHint.style.display = 'none';
+                schedulePreviewUpdate();
             });
             el.themeGrid.appendChild(card);
         });
@@ -116,6 +117,7 @@
             renderPalette();
             el.customPaletteSection.style.display = '';
             el.customPaletteHint.style.display = '';
+            schedulePreviewUpdate();
         });
         el.themeGrid.appendChild(customCard);
 
@@ -144,6 +146,7 @@
                 }
                 colors.splice(index, 1);
                 renderPalette();
+                schedulePreviewUpdate();
             });
             el.paletteList.appendChild(wrapper);
         });
@@ -165,6 +168,7 @@
                     weight: 100
                 });
                 showStatus(`« ${icon.label} » ajouté aux segments.`, 'success');
+                schedulePreviewUpdate();
             });
             el.iconGallery.appendChild(card);
         });
@@ -218,6 +222,7 @@
                 row.dataset.iconId = icon.id;
                 row.dataset.imageUrl = '';
                 thumb.innerHTML = IL.renderSVG(icon.id);
+                schedulePreviewUpdate();
             });
         });
 
@@ -229,6 +234,7 @@
                 const dataUrl = await CS.resizeImageFile(file);
                 row.dataset.imageUrl = dataUrl;
                 thumb.innerHTML = `<img src="${dataUrl}" alt="">`;
+                schedulePreviewUpdate();
             } catch (err) {
                 showStatus('Image illisible : ' + err.message, 'error');
             }
@@ -236,6 +242,7 @@
 
         row.querySelector('.segment-remove').addEventListener('click', () => {
             row.remove();
+            schedulePreviewUpdate();
         });
 
         el.segmentsBody.appendChild(row);
@@ -311,6 +318,22 @@
         el.previewFrame.src = 'wheel.html?t=' + Date.now();
     }
 
+    // Aperçu en direct : envoie le brouillon en cours (pas encore enregistré)
+    // à la roue affichée dans l'iframe, qui l'affiche sans jamais l'écrire
+    // en localStorage. Débouncé pour ne pas spammer pendant la frappe.
+    let previewDebounce = null;
+    function schedulePreviewUpdate() {
+        if (previewDebounce) clearTimeout(previewDebounce);
+        previewDebounce = setTimeout(pushPreview, 250);
+    }
+
+    function pushPreview() {
+        readFormIntoConfig();
+        const frameWindow = el.previewFrame.contentWindow;
+        if (!frameWindow) return;
+        frameWindow.postMessage({ type: 'wheel:preview-config', config: currentConfig }, window.location.origin);
+    }
+
     async function saveConfig(message) {
         readFormIntoConfig();
         CS.saveConfig(currentConfig);
@@ -325,6 +348,7 @@
         el.addColor.addEventListener('click', () => {
             currentConfig.settings.colors.push('#888888');
             renderPalette();
+            schedulePreviewUpdate();
         });
 
         el.addBlankSegment.addEventListener('click', () => {
@@ -335,6 +359,7 @@
                 imageUrl: '',
                 weight: 100
             });
+            schedulePreviewUpdate();
         });
 
         el.resetStocksBtn.addEventListener('click', () => {
@@ -354,6 +379,7 @@
             renderThemeGrid();
             renderPalette();
             showStatus('Palette générée à partir de la couleur de marque.', 'success');
+            schedulePreviewUpdate();
         });
 
         el.pinSetBtn.addEventListener('click', async () => {
@@ -419,6 +445,14 @@
         });
 
         el.refreshPreview.addEventListener('click', refreshPreview);
+
+        // Aperçu en direct pour tous les champs "simples" (texte, nombre,
+        // case à cocher, sélecteur de couleur manuel) : la galerie de
+        // goodies, les thèmes et les actions sur les lignes de segments
+        // appellent déjà schedulePreviewUpdate() explicitement ci-dessus.
+        const configColumn = document.querySelector('.config-col');
+        configColumn.addEventListener('input', schedulePreviewUpdate);
+        configColumn.addEventListener('change', schedulePreviewUpdate);
 
         renderIconGallery();
     }

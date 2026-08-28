@@ -36,9 +36,41 @@ header a:hover {
 }
 
 main {
-    max-width: 1000px;
+    max-width: 1400px;
     margin: 24px auto;
     padding: 0 16px 60px 16px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 420px;
+    gap: 24px;
+    align-items: start;
+}
+
+.config-col {
+    min-width: 0;
+}
+
+.preview-col {
+    position: sticky;
+    top: 24px;
+}
+
+.preview-sticky #preview-frame {
+    height: 70vh;
+    min-height: 420px;
+}
+
+@media (max-width: 960px) {
+    main {
+        grid-template-columns: 1fr;
+    }
+
+    .preview-col {
+        position: static;
+    }
+
+    .preview-sticky #preview-frame {
+        height: 480px;
+    }
 }
 
 section {

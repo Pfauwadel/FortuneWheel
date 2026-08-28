@@ -35,6 +35,7 @@
     </header>
 
     <main>
+        <div class="config-col">
         <section>
             <h2>Réglages généraux</h2>
             <div class="field-row">
@@ -168,14 +169,18 @@
                 <button class="btn btn-danger" id="reset-btn">↺ Réinitialiser (config par défaut)</button>
             </div>
         </section>
+        </div>
 
-        <section>
-            <h2>Aperçu en direct</h2>
-            <iframe id="preview-frame" src="wheel.html"></iframe>
-            <div class="toolbar">
-                <button class="btn" id="refresh-preview">🔄 Actualiser l'aperçu</button>
-            </div>
-        </section>
+        <div class="preview-col">
+            <section class="preview-sticky">
+                <h2>Aperçu en direct</h2>
+                <p class="hint">Se met à jour automatiquement pendant que vous modifiez les réglages à gauche (avant même de cliquer sur « Enregistrer »).</p>
+                <iframe id="preview-frame" src="wheel.html"></iframe>
+                <div class="toolbar">
+                    <button class="btn" id="refresh-preview">🔄 Actualiser l'aperçu</button>
+                </div>
+            </section>
+        </div>
     </main>
 
     <script src="js/admin-lock.js"></script>
