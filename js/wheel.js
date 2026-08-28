@@ -2,39 +2,31 @@
     const wheel = document.getElementById('wheel');
     const spinButton = document.getElementById('spin');
     const resultDiv = document.getElementById('result');
-    const titleEl = document.getElementById('wheel-title');
+    const brandEl = document.getElementById('wheel-brand');
     const pointerEl = document.getElementById('pointer');
+    const tickerTrack = document.getElementById('ticker-track');
+
+    const GOLD_STROKE = 'rgba(208,181,128,0.45)';
 
     let loadedConfig = null;
     let segments = [];
     let colors = [];
     let accentColor = '#ee3126';
+    let duoTones = ['#ee3126', '#242932'];
     let settings = {};
     let isSpinning = false;
     let currentRotation = 0;
     let idleTimer = null;
-
-    function lightenColor(color, percent) {
-        const num = parseInt(color.replace('#', ''), 16);
-        const amt = Math.round(2.55 * percent);
-        const R = (num >> 16) + amt;
-        const G = (num >> 8 & 0x00FF) + amt;
-        const B = (num & 0x0000FF) + amt;
-        return '#' + (0x1000000 + (Math.min(255, R) << 16) + (Math.min(255, G) << 8) + Math.min(255, B)).toString(16).slice(1);
-    }
+    let resizeTimer = null;
 
     function colorLuminance(color) {
         const num = parseInt(color.replace('#', ''), 16);
-        const r = (num >> 16) & 0xff;
-        const g = (num >> 8) & 0xff;
-        const b = num & 0xff;
-        return (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+        return (0.299 * ((num >> 16) & 0xff) + 0.587 * ((num >> 8) & 0xff) + 0.114 * (num & 0xff)) / 255;
     }
 
-    // Choisit un texte clair ou sombre selon la luminosité du segment, pour
-    // que le libellé reste lisible quel que soit le thème (clair ou foncé).
+    // Texte clair ou sombre selon la luminosité du segment.
     function readableTextColor(color) {
-        return colorLuminance(color) > 0.6 ? '#1a1a1a' : '#ffffff';
+        return colorLuminance(color) > 0.6 ? '#15171d' : '#ffffff';
     }
 
     function darkestColor(colorList) {
@@ -51,8 +43,29 @@
         return '#' + (0x1000000 + (R << 16) + (G << 8) + B).toString(16).slice(1);
     }
 
+    // Deux teintes dérivées du thème : couleur d'accent + teinte la plus
+    // sombre de la palette (repli sur un charbon neutre si la palette est
+    // entièrement claire, comme le thème Pastel).
+    function resolveDuoTones(colorList, accent) {
+        const dark = darkestColor(colorList);
+        return [accent, colorLuminance(dark) < 0.28 ? dark : '#242932'];
+    }
+
+    function segmentFill(index) {
+        if (settings.wheelToneMode === 'palette') return colors[index % colors.length];
+        return duoTones[index % 2];
+    }
+
     function isDepleted(segment) {
         return segment.stock !== null && segment.stock !== undefined && segment.stock <= 0;
+    }
+
+    function iconMarkup(segment, sizePx, color) {
+        if (segment.imageUrl) {
+            return `<img src="${segment.imageUrl}" alt="" style="width:${sizePx}px;height:${sizePx}px;object-fit:contain;">`;
+        }
+        return window.IconLibrary.renderSVG(segment.iconId, { size: 0 })
+            .replace('<svg ', `<svg style="width:${sizePx}px;height:${sizePx}px;color:${color};" `);
     }
 
     function generateWheel() {
@@ -60,119 +73,64 @@
         wheel.innerHTML = '';
         if (numSegments === 0) return;
 
-        let labelHtml = '';
-        let currentAngle = 0;
-        const totalWeight = segments.reduce((sum, elem) => sum + elem.weight, 0);
+        const size = wheel.offsetWidth || 600;
+        const labelFont = Math.max(11, Math.round(size * 0.034));
+        const iconSize = Math.max(14, Math.round(size * 0.052));
+        const labelOffset = Math.round(size * 0.34);
 
-        wheel.style.position = 'relative';
+        const totalWeight = segments.reduce((sum, elem) => sum + elem.weight, 0);
+        let currentAngle = 0;
+        let labelHtml = '';
 
         const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
         svg.setAttribute('viewBox', '0 0 100 100');
         svg.setAttribute('width', '100%');
         svg.setAttribute('height', '100%');
         svg.style.position = 'absolute';
-        svg.style.top = '0';
-        svg.style.left = '0';
+        svg.style.inset = '0';
         svg.style.pointerEvents = 'none';
 
-        const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
-        segments.forEach((_, index) => {
-            const color = colors[index % colors.length];
-            const endColor = lightenColor(color, 20);
-
-            const radialGradient = document.createElementNS('http://www.w3.org/2000/svg', 'radialGradient');
-            radialGradient.setAttribute('id', `grad${index}`);
-            radialGradient.setAttribute('cx', '50%');
-            radialGradient.setAttribute('cy', '50%');
-            radialGradient.setAttribute('r', '75%');
-
-            const stop1 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
-            stop1.setAttribute('offset', '0%');
-            stop1.setAttribute('stop-color', color);
-            radialGradient.appendChild(stop1);
-
-            const stop2 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
-            stop2.setAttribute('offset', '100%');
-            stop2.setAttribute('stop-color', endColor);
-            radialGradient.appendChild(stop2);
-
-            defs.appendChild(radialGradient);
-        });
-
-        const strokeGrad = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
-        strokeGrad.setAttribute('id', 'strokeGrad');
-        strokeGrad.setAttribute('x1', '0%');
-        strokeGrad.setAttribute('y1', '0%');
-        strokeGrad.setAttribute('x2', '0%');
-        strokeGrad.setAttribute('y2', '100%');
-        const strokeStop1 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
-        strokeStop1.setAttribute('offset', '0%');
-        strokeStop1.setAttribute('stop-color', 'black');
-        strokeGrad.appendChild(strokeStop1);
-        const strokeStop2 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
-        strokeStop2.setAttribute('offset', '100%');
-        strokeStop2.setAttribute('stop-color', lightenColor('#000000', 20));
-        strokeGrad.appendChild(strokeStop2);
-        defs.appendChild(strokeGrad);
-
-        svg.appendChild(defs);
-
-        const radius = 50;
-        const cx = 50;
-        const cy = 50;
         segments.forEach((segment, index) => {
             const segmentAngle = (segment.weight / totalWeight) * 360;
-            // Un arc SVG ne peut pas boucler exactement à 360° (point de
-            // départ = point d'arrivée = tracé dégénéré, invisible) : cas
-            // réel dès qu'il ne reste qu'un seul segment sur la roue.
+            // Un arc SVG ne peut pas boucler exactement à 360°.
             const arcSweep = segmentAngle >= 359.99 ? 359.99 : segmentAngle;
-            const startRad = (currentAngle * Math.PI / 180);
-            const endRad = ((currentAngle + arcSweep) * Math.PI / 180);
+            const startRad = currentAngle * Math.PI / 180;
+            const endRad = (currentAngle + arcSweep) * Math.PI / 180;
 
-            const x1 = cx + radius * Math.cos(startRad);
-            const y1 = cy + radius * Math.sin(startRad);
-            const x2 = cx + radius * Math.cos(endRad);
-            const y2 = cy + radius * Math.sin(endRad);
+            const x1 = 50 + 50 * Math.cos(startRad);
+            const y1 = 50 + 50 * Math.sin(startRad);
+            const x2 = 50 + 50 * Math.cos(endRad);
+            const y2 = 50 + 50 * Math.sin(endRad);
+            const largeArc = segmentAngle > 180 ? 1 : 0;
 
-            const largeArc = (segmentAngle > 180) ? 1 : 0;
             const depleted = isDepleted(segment);
+            const fill = segmentFill(index);
 
-            const pathD = `M ${cx} ${cy} L ${x1} ${y1} A ${radius} ${radius} 0 ${largeArc} 1 ${x2} ${y2} Z`;
             const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-            path.setAttribute('d', pathD);
-            path.setAttribute('fill', depleted ? '#9a9a9a' : `url(#grad${index})`);
-            path.setAttribute('opacity', depleted ? '0.4' : '1');
-            path.setAttribute('stroke', 'url(#strokeGrad)');
-            path.setAttribute('stroke-width', '0.5');
+            path.setAttribute('d', `M 50 50 L ${x1} ${y1} A 50 50 0 ${largeArc} 1 ${x2} ${y2} Z`);
+            path.setAttribute('fill', depleted ? '#3a3f48' : fill);
+            path.setAttribute('stroke', GOLD_STROKE);
+            path.setAttribute('stroke-width', '0.25');
             path.setAttribute('pointer-events', 'none');
-            path.setAttribute('transform', `rotate(-90 ${cx} ${cy})`);
+            path.setAttribute('transform', 'rotate(-90 50 50)');
             svg.appendChild(path);
 
-            const segmentColor = colors[index % colors.length];
-            const labelAngle = currentAngle + segmentAngle / 2;
-            const textColor = readableTextColor(segmentColor);
-            const textShadow = textColor === '#ffffff' ? '1px 1px 2px rgba(0,0,0,0.5)' : '1px 1px 2px rgba(255,255,255,0.4)';
-            const iconSvg = segment.imageUrl
-                ? `<img src="${segment.imageUrl}" alt="" style="width:3.4vmin;height:3.4vmin;object-fit:contain;display:block;margin:0 auto 2px;">`
-                : window.IconLibrary.renderSVG(segment.iconId, { size: 0 }).replace('<svg ', '<svg style="width:3.4vmin;height:3.4vmin;display:block;margin:0 auto 2px;color:' + textColor + ';" ');
-            const depletedTag = depleted ? '<span class="depleted-tag">Épuisé</span>' : '';
+            const textColor = readableTextColor(depleted ? '#3a3f48' : fill);
+            const mid = currentAngle + segmentAngle / 2;
+            // Moitié basse : libellé retourné de 180° pour rester lisible.
+            const flipped = mid > 90 && mid < 270;
+            const rotation = flipped ? mid + 180 : mid;
+            const translate = flipped ? labelOffset : -labelOffset;
+
             labelHtml += `
-                <div class="label${depleted ? ' depleted' : ''}" style="
-                    position: absolute;
-                    left: 50%;
-                    top: 50%;
-                    width: 16vmin;
-                    transform: translate(-50%, -50%) rotate(${labelAngle}deg) translateY(-35vmin);
-                    text-align: center;
+                <div class="label${flipped ? ' flipped' : ''}${depleted ? ' depleted' : ''}" style="
+                    transform: translate(-50%, -50%) rotate(${rotation}deg) translateY(${translate}px);
                     color: ${textColor};
-                    font-weight: bold;
-                    font-size: 2vmin;
-                    text-shadow: ${textShadow};
-                    white-space: nowrap;
-                    overflow: hidden;
-                    pointer-events: none;
-                    z-index: 1;
-                ">${iconSvg}${segment.description}${depletedTag}</div>
+                    font-size: ${labelFont}px;
+                ">
+                    ${iconMarkup(segment, iconSize, textColor)}
+                    <span class="label-name">${segment.description}${depleted ? '<span class="depleted-tag">Épuisé</span>' : ''}</span>
+                </div>
             `;
 
             segment.segmentRange = [currentAngle, currentAngle + segmentAngle];
@@ -181,6 +139,19 @@
 
         wheel.appendChild(svg);
         wheel.insertAdjacentHTML('beforeend', labelHtml);
+    }
+
+    // Bandeau bas : liste des lots, dupliquée pour un défilement continu.
+    function renderTicker() {
+        if (!tickerTrack) return;
+        const items = segments.map((segment) => `
+            <div class="ticker-item${isDepleted(segment) ? ' depleted' : ''}">
+                ${iconMarkup(segment, 24, '#d0b580')}
+                <span>${segment.description}</span>
+                <i></i>
+            </div>
+        `).join('');
+        tickerTrack.innerHTML = items + items;
     }
 
     function pickWeightedSegment(eligible) {
@@ -201,9 +172,8 @@
         return -1;
     }
 
-    // Suit la rotation réelle de la roue pendant l'animation pour jouer un
-    // "tick" (son + rebond du pointeur) à chaque frontière de segment
-    // franchie — indépendant de la courbe d'accélération CSS.
+    // Suit la rotation réelle pendant l'animation pour jouer un "tick" à
+    // chaque frontière de segment franchie.
     function watchTicks(durationMs) {
         if (segments.length === 0) return;
         let lastIndex = -1;
@@ -223,7 +193,7 @@
                     if (settings.soundEnabled !== false) window.SoundFX.play('tick');
                     if (pointerEl) {
                         pointerEl.classList.remove('tick');
-                        void pointerEl.offsetWidth; // force le reflow pour rejouer l'animation CSS
+                        void pointerEl.offsetWidth;
                         pointerEl.classList.add('tick');
                     }
                 }
@@ -239,7 +209,7 @@
 
         const eligible = segments.filter((s) => !isDepleted(s));
         if (eligible.length === 0) {
-            resultDiv.textContent = 'Tous les lots sont épuisés.';
+            resultDiv.textContent = 'Tous les lots sont épuisés';
             return;
         }
 
@@ -268,20 +238,20 @@
         wheel.style.transform = `rotate(${totalRotation}deg)`;
         watchTicks(3000);
 
-        const handler = () => finishSpin(winner);
-        wheel.addEventListener('transitionend', handler, { once: true });
+        wheel.addEventListener('transitionend', () => finishSpin(winner), { once: true });
     }
 
     function finishSpin(winner) {
-        resultDiv.textContent = `Résultat : ${winner.description} !`;
+        resultDiv.textContent = `Lot tiré · ${winner.description}`;
 
         if (winner.stock !== null && winner.stock !== undefined) {
             winner.stock = Math.max(0, winner.stock - 1);
             if (loadedConfig) window.ConfigStore.saveConfig(loadedConfig);
             generateWheel();
+            renderTicker();
         }
 
-        showGiftImage(winner);
+        showGiftScreen(winner);
 
         if (settings.confettiEnabled !== false) triggerConfetti();
         if (settings.soundEnabled !== false) window.SoundFX.play('win');
@@ -292,15 +262,15 @@
     }
 
     function triggerConfetti() {
-        const count = 100;
-        for (let i = 0; i < count; i++) {
+        const palette = [accentColor, '#d0b580', '#eeece0'];
+        for (let i = 0; i < 110; i++) {
             const piece = document.createElement('div');
-            const size = Math.random() * 8 + 4;
-            const color = colors[Math.floor(Math.random() * colors.length)];
+            const wide = i % 3 === 0;
             piece.style.cssText = `
                 position: fixed; left: 50%; top: 40%;
-                width: ${size}px; height: ${size}px; background: ${color};
-                border-radius: ${Math.random() > 0.5 ? '50%' : '2px'};
+                width: ${wide ? 6 : 9}px; height: ${wide ? 12 : 9}px;
+                background: ${palette[i % palette.length]};
+                border-radius: ${i % 4 === 0 ? '50%' : '1px'};
                 pointer-events: none; z-index: 10000;
             `;
             document.body.appendChild(piece);
@@ -309,72 +279,50 @@
                 { transform: 'translate(-50%, -50%) scale(0)', opacity: 1 },
                 { transform: `translate(${Math.random() * 200 - 100}vw, ${Math.random() * 140 - 30}vh) rotate(${Math.random() * 720}deg) scale(1)`, opacity: 0.9, offset: 0.7 },
                 { transform: `translate(${Math.random() * 220 - 110}vw, ${Math.random() * 160}vh) rotate(${Math.random() * 1080}deg) scale(1)`, opacity: 0 }
-            ], {
-                duration: 1600 + Math.random() * 1200,
-                easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)'
-            });
+            ], { duration: 1600 + Math.random() * 1200, easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)' });
             anim.onfinish = () => piece.remove();
         }
     }
 
-    function showGiftImage(gift) {
+    function showGiftScreen(gift) {
+        const displayMs = settings.resultDisplayMs || 3000;
         const overlay = document.createElement('div');
         overlay.id = 'gift-overlay';
-        overlay.style.cssText = `
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: rgba(0, 0, 0, 0.8); display: flex; flex-direction: column;
-            gap: 20px; justify-content: center; align-items: center; z-index: 9999; opacity: 0;
-            transition: opacity 0.5s ease-in-out;
+        overlay.innerHTML = `
+            <div class="gift-eyebrow"><i></i><span>Vous gagnez</span><i></i></div>
+            <div class="gift-visual">${iconMarkup(gift, 0, '#ffffff') || ''}</div>
+            <div class="gift-label">${gift.description}</div>
+            <div class="gift-hint">Présentez cet écran à l'équipe du stand pour retirer votre lot.</div>
+            <div class="gift-timer"><i></i></div>
         `;
+        // L'icône du visuel est dimensionnée par la feuille de style (55 %) :
+        // on retire les tailles en dur injectées par iconMarkup.
+        const visualIcon = overlay.querySelector('.gift-visual svg, .gift-visual img');
+        if (visualIcon) visualIcon.removeAttribute('style');
 
-        const visual = document.createElement('div');
-        visual.style.cssText = `
-            width: min(50vmin, 320px); height: min(50vmin, 320px); border-radius: 50%;
-            background: ${accentColor}; display: flex; justify-content: center; align-items: center;
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4); opacity: 0;
-            transform: scale(0.8); transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
-        `;
-
-        if (gift.imageUrl) {
-            const img = document.createElement('img');
-            img.src = gift.imageUrl;
-            img.alt = gift.description;
-            img.style.cssText = 'max-width: 70%; max-height: 70%; object-fit: contain;';
-            visual.appendChild(img);
-        } else {
-            visual.innerHTML = window.IconLibrary.renderSVG(gift.iconId, { size: 0 })
-                .replace('<svg ', '<svg style="width:55%;height:55%;color:#ffffff;" ');
-        }
-
-        const label = document.createElement('div');
-        label.textContent = gift.description;
-        label.style.cssText = 'color:white; font-size: 28px; font-weight: bold; text-align:center; opacity:0; transition: opacity 0.5s ease-in-out;';
-
-        overlay.appendChild(visual);
-        overlay.appendChild(label);
         document.body.appendChild(overlay);
 
-        const displayMs = settings.resultDisplayMs || 3000;
+        const bar = overlay.querySelector('.gift-timer i');
+        requestAnimationFrame(() => {
+            overlay.classList.add('show');
+            requestAnimationFrame(() => {
+                overlay.classList.add('reveal');
+                if (bar) {
+                    bar.animate([{ transform: 'scaleX(1)' }, { transform: 'scaleX(0)' }], { duration: displayMs, easing: 'linear', fill: 'forwards' });
+                }
+            });
+        });
 
-        setTimeout(() => { overlay.style.opacity = '1'; }, 10);
         setTimeout(() => {
-            visual.style.opacity = '1';
-            visual.style.transform = 'scale(1)';
-            label.style.opacity = '1';
-        }, 250);
-        setTimeout(() => {
-            visual.style.opacity = '0';
-            visual.style.transform = 'scale(0.8)';
-            label.style.opacity = '0';
+            overlay.classList.remove('reveal');
             setTimeout(() => {
-                overlay.style.opacity = '0';
+                overlay.classList.remove('show');
                 setTimeout(() => overlay.remove(), 500);
             }, 250);
         }, displayMs);
     }
 
-    // Mode attraction : après une période d'inactivité, fait légèrement
-    // pulser le bouton pour inciter les passants d'un salon à jouer.
+    // Mode attraction : pulsation du bouton après une période d'inactivité.
     function resetIdleTimer() {
         spinButton.classList.remove('attract');
         if (idleTimer) clearTimeout(idleTimer);
@@ -385,9 +333,6 @@
         }, seconds * 1000);
     }
 
-    // Applique une config déjà résolue (venant du stockage normal, ou d'un
-    // brouillon envoyé en direct par admin.html pendant l'édition — voir
-    // l'écouteur "message" plus bas). Ne persiste jamais rien elle-même.
     function applyConfig(config) {
         loadedConfig = config;
         settings = config.settings;
@@ -396,38 +341,27 @@
         const theme = window.ThemeLibrary.resolve(settings);
         colors = theme.colors;
         accentColor = theme.accentColor;
+        duoTones = resolveDuoTones(colors, accentColor);
 
-        if (titleEl) {
-            titleEl.textContent = settings.title || 'Roue de la Fortune';
-            document.title = settings.title || 'Roue de la Fortune';
-        }
+        const title = settings.title || 'Roue de la Fortune';
+        if (brandEl) brandEl.textContent = title;
+        document.title = title;
 
-        document.documentElement.style.setProperty('--accent-color', accentColor);
-        document.documentElement.style.setProperty('--accent-color-dark', shadeColor(accentColor, -25));
-        document.documentElement.style.setProperty('--overlay-color', darkestColor(colors));
-        document.documentElement.style.setProperty('--title-color', accentColor);
-
-        // Quand la config vient du localStorage (pas de config.json à
-        // récupérer), cette résolution se termine si vite qu'elle peut
-        // arriver avant que background.js ait fini de charger et d'écouter
-        // l'évènement ci-dessous. On expose donc aussi le résultat sur
-        // window, que background.js consulte directement à son chargement.
-        window.__wheelTheme = { colors, accentColor };
-        window.dispatchEvent(new CustomEvent('wheel:theme-ready', { detail: { colors, accentColor } }));
+        const root = document.documentElement.style;
+        root.setProperty('--accent-color', accentColor);
+        root.setProperty('--accent-color-dark', shadeColor(accentColor, -22));
+        root.setProperty('--duo-dark', duoTones[1]);
 
         generateWheel();
+        renderTicker();
         resetIdleTimer();
     }
 
     async function init() {
-        const config = await window.ConfigStore.loadConfig();
-        applyConfig(config);
+        applyConfig(await window.ConfigStore.loadConfig());
     }
 
-    // Aperçu en direct depuis admin.html : quand cette page est chargée dans
-    // l'iframe de l'admin, elle affiche instantanément tout brouillon reçu,
-    // sans jamais l'écrire en localStorage (seuls les boutons "Enregistrer"
-    // / "Appliquer le thème" de l'admin persistent réellement la config).
+    // Aperçu en direct depuis admin.html (jamais persisté ici).
     window.addEventListener('message', (event) => {
         if (event.origin !== window.location.origin) return;
         const data = event.data;
@@ -442,12 +376,15 @@
         window.addEventListener(evt, resetIdleTimer, { passive: true });
     });
 
-    // Si la config est modifiée dans un autre onglet (admin.html), on
-    // régénère la roue pour refléter le changement immédiatement.
+    // Les libellés sont dimensionnés en pixels d'après le diamètre réel :
+    // on les régénère après un redimensionnement (ou une rotation d'écran).
+    window.addEventListener('resize', () => {
+        if (resizeTimer) clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => { if (!isSpinning) generateWheel(); }, 200);
+    });
+
     window.addEventListener('storage', (event) => {
-        if (event.key === window.ConfigStore.STORAGE_KEY && !isSpinning) {
-            init();
-        }
+        if (event.key === window.ConfigStore.STORAGE_KEY && !isSpinning) init();
     });
 
     init();

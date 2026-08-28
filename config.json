@@ -4,7 +4,8 @@
     "spinMinTurns": 5,
     "spinMaxTurns": 10,
     "resultDisplayMs": 3000,
-    "themeId": "kuhn"
+    "themeId": "kuhn",
+    "wheelToneMode": "duo"
   },
   "segments": [
     { "id": "seg-1", "description": "Stylo", "iconId": "pen", "weight": 100 },

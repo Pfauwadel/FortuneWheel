@@ -7,6 +7,9 @@
     <title>Roue de la Fortune — Présentation</title>
     <link rel="icon" href="assets/favicon.png">
     <link rel="manifest" href="manifest.json">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/landing.css">
     <script>
         if ('serviceWorker' in navigator) {
@@ -16,45 +19,67 @@
 </head>
 
 <body>
-    <div class="hero">
-        <img src="assets/icon-512.png" alt="Logo Roue de la Fortune">
-        <h1>Roue de la Fortune</h1>
-        <p>
-            Une roue de la fortune personnalisable, installable hors-ligne sur un poste,
-            avec une interface d'administration pour gérer les lots, les images et les réglages
-            sans toucher au code.
-        </p>
-    </div>
+    <div class="top-rule"></div>
 
-    <div class="cta-row">
-        <a class="cta cta-primary" href="wheel.html">🎡 Lancer la roue</a>
-        <a class="cta cta-secondary" href="admin.html">⚙ Administration</a>
-    </div>
+    <header class="site-head">
+        <div class="site-brand">
+            <span class="brand-mark">K</span>
+            <span>Roue de la Fortune</span>
+        </div>
+        <span class="meta">Application locale · PWA</span>
+    </header>
 
-    <div class="card">
-        <h2>Comment ça marche</h2>
-        <ul>
-            <li><strong>Roue</strong> : la page publique, animée, qui tire un lot au hasard.</li>
-            <li><strong>Administration</strong> : ajout/suppression de lots, images, poids (probabilité),
-                couleurs et réglages, avec aperçu en direct.</li>
-            <li>La configuration modifiée dans l'administration est enregistrée <strong>sur ce poste</strong>
-                (elle reste disponible hors-ligne). Elle peut aussi être exportée en fichier
-                <code>config.json</code> pour être versionnée dans le dépôt et devenir la valeur par défaut
-                pour tout le monde.</li>
-        </ul>
-    </div>
+    <section class="hero">
+        <div class="hero-copy">
+            <div class="eyebrow"><i></i><span>Animation de stand</span></div>
+            <h1>Une roue de la fortune prête pour le salon</h1>
+            <p>
+                Lots, probabilités, stocks et couleurs se règlent depuis l'interface d'administration.
+                L'application s'installe sur le poste et fonctionne sans connexion.
+            </p>
+            <div class="cta-row">
+                <a class="cta cta-primary" href="wheel.html">Lancer la roue</a>
+                <a class="cta cta-secondary" href="admin.html">Administration</a>
+            </div>
+        </div>
+        <div class="hero-wheel">
+            <div class="disc"></div>
+            <div class="hub">KUHN</div>
+            <div class="needle"></div>
+        </div>
+    </section>
 
-    <div class="card">
-        <h2>Installer l'application hors-ligne sur un poste</h2>
-        <ol>
-            <li>Ouvrez <a href="wheel.html" style="color:#d0b580;">la roue</a> dans Chrome ou Edge.</li>
-            <li>Cliquez sur l'icône d'installation dans la barre d'adresse (ou menu ⋮ → « Installer l'application »).</li>
-            <li>Une fois installée, l'application se lance comme un programme normal, sans connexion internet.</li>
-        </ol>
+    <div class="cards">
+        <div class="card">
+            <div class="card-eyebrow">Écran public</div>
+            <h2>Lisible à trois mètres</h2>
+            <p>
+                Titres condensés en capitales, deux teintes de la palette en alternance, filets dorés et
+                bouton tactile pleine largeur. Le bandeau bas fait défiler les lots en jeu.
+            </p>
+        </div>
+        <div class="card">
+            <div class="card-eyebrow">Administration</div>
+            <h2>Onglets et aperçu permanent</h2>
+            <p>
+                Lots, réglages, thème, animations, sécurité et sauvegarde sont séparés en onglets ;
+                l'aperçu de la roue reste visible pendant les modifications.
+            </p>
+        </div>
+        <div class="card">
+            <div class="card-eyebrow">Hors ligne</div>
+            <h2>Installer sur un poste</h2>
+            <ol>
+                <li>Ouvrez <a href="wheel.html">la roue</a> dans Chrome ou Edge.</li>
+                <li>Cliquez sur l'icône d'installation dans la barre d'adresse.</li>
+                <li>L'application se lance ensuite comme un programme local, sans connexion.</li>
+            </ol>
+        </div>
     </div>
 
     <footer>
-        Code source disponible sur GitHub.
+        <span>Code source disponible sur GitHub.</span>
+        <span>Configuration par défaut : <code>config.json</code></span>
     </footer>
 </body>
 

@@ -8,7 +8,10 @@
     <link rel="manifest" href="manifest.json">
     <link rel="icon" href="assets/favicon.png">
     <link rel="apple-touch-icon" href="assets/icon-192.png">
-    <meta name="theme-color" content="#2e3440">
+    <meta name="theme-color" content="#0b0d11">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
 
     <script>
@@ -23,27 +26,35 @@
 </head>
 
 <body>
-    <div class="geometric-background" id="geometric-background"></div>
-    <div class="particles" id="particles"></div>
-    <div class="gradient-overlay"></div>
+    <div class="stage-bg"></div>
 
     <a class="admin-link" href="admin.html" title="Administration">⚙</a>
 
-    <h1 id="wheel-title">Roue de la Fortune</h1>
+    <header class="stage-head">
+        <div class="stage-eyebrow"><i></i><span id="wheel-brand">Roue de la Fortune</span><i></i></div>
+        <h1 id="wheel-title">Tentez votre chance</h1>
+    </header>
 
-    <div id="wheel-container" style="z-index: 10;">
-        <div id="wheel"></div>
+    <div id="wheel-container">
+        <div class="wheel-rim">
+            <div id="wheel"></div>
+        </div>
+        <div class="wheel-hub" id="wheel-hub">KUHN</div>
         <div id="pointer"></div>
     </div>
+
     <button id="spin">Tourner la roue</button>
     <div id="result"></div>
+
+    <div class="ticker">
+        <div class="ticker-track" id="ticker-track"></div>
+    </div>
 
     <script src="js/icon-library.js"></script>
     <script src="js/theme-library.js"></script>
     <script src="js/config-store.js"></script>
     <script src="js/sound.js"></script>
     <script src="js/wheel.js"></script>
-    <script src="js/background.js"></script>
 </body>
 
 </html>

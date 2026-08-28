@@ -262,6 +262,9 @@
         el.sound.checked = currentConfig.settings.soundEnabled !== false;
         el.attract.checked = currentConfig.settings.attractModeEnabled !== false;
         el.attractSeconds.value = currentConfig.settings.attractIdleSeconds || 45;
+        const toneMode = currentConfig.settings.wheelToneMode === 'palette' ? 'palette' : 'duo';
+        const toneRadio = document.getElementById('setting-tone-' + toneMode);
+        if (toneRadio) toneRadio.checked = true;
         renderThemeGrid();
         renderPalette();
         renderSegments();
@@ -286,6 +289,8 @@
         currentConfig.settings.soundEnabled = el.sound.checked;
         currentConfig.settings.attractModeEnabled = el.attract.checked;
         currentConfig.settings.attractIdleSeconds = Number(el.attractSeconds.value) || 45;
+        const toneInput = document.querySelector('input[name="wheel-tone"]:checked');
+        currentConfig.settings.wheelToneMode = toneInput ? toneInput.value : 'duo';
 
         if (currentConfig.settings.themeId === 'custom') {
             currentConfig.settings.colors = Array.from(
