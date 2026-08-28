@@ -16,14 +16,24 @@
             spinMinTurns: 5,
             spinMaxTurns: 10,
             resultDisplayMs: 3000,
-            colors: ['#ee3126', '#4a4a4a', '#d0b580', '#000000', '#eeece0', '#2e3440']
+            themeId: 'kuhn'
         },
         segments: [
-            { id: 'seg-1', description: 'Stylo', imageUrl: 'assets/stylo.png', weight: 100 },
-            { id: 'seg-2', description: 'Cup', imageUrl: 'assets/cup.png', weight: 100 },
-            { id: 'seg-3', description: 'Porte clé', imageUrl: 'assets/portecle.png', weight: 100 },
-            { id: 'seg-4', description: 'Cadeau mystère', imageUrl: 'assets/questionmark.png', weight: 100 }
+            { id: 'seg-1', description: 'Stylo', iconId: 'pen', weight: 100 },
+            { id: 'seg-2', description: 'Tasse / Mug', iconId: 'cup', weight: 100 },
+            { id: 'seg-3', description: 'Porte-clés', iconId: 'keychain', weight: 100 },
+            { id: 'seg-4', description: 'Cadeau mystère', iconId: 'mystery', weight: 100 }
         ]
+    };
+
+    // Anciennes configs (avant la bascule vers les icônes vectorielles) qui
+    // référençaient encore les PNG livrés par défaut : on les fait pointer
+    // vers l'icône équivalente pour ne pas casser un poste déjà configuré.
+    const LEGACY_IMAGE_TO_ICON = {
+        'assets/stylo.png': 'pen',
+        'assets/cup.png': 'cup',
+        'assets/portecle.png': 'keychain',
+        'assets/questionmark.png': 'mystery'
     };
 
     function cloneConfig(config) {
@@ -36,12 +46,24 @@
             Object.assign(normalized.settings, config.settings);
         }
         if (config && Array.isArray(config.segments) && config.segments.length > 0) {
-            normalized.segments = config.segments.map((seg, index) => ({
-                id: seg.id || `seg-${index + 1}`,
-                description: seg.description || '',
-                imageUrl: seg.imageUrl || '',
-                weight: Number(seg.weight) > 0 ? Number(seg.weight) : 1
-            }));
+            normalized.segments = config.segments.map((seg, index) => {
+                let iconId = seg.iconId || '';
+                let imageUrl = seg.imageUrl || '';
+                if (!iconId && imageUrl && LEGACY_IMAGE_TO_ICON[imageUrl]) {
+                    iconId = LEGACY_IMAGE_TO_ICON[imageUrl];
+                    imageUrl = '';
+                }
+                if (!iconId && !imageUrl) {
+                    iconId = 'mystery';
+                }
+                return {
+                    id: seg.id || `seg-${index + 1}`,
+                    description: seg.description || '',
+                    iconId,
+                    imageUrl,
+                    weight: Number(seg.weight) > 0 ? Number(seg.weight) : 1
+                };
+            });
         }
         return normalized;
     }

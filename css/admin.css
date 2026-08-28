@@ -110,13 +110,125 @@ section h2 {
     border-radius: 4px;
 }
 
-#segments-table img.thumb {
+#segments-table img.thumb,
+.thumb {
     width: 40px;
     height: 40px;
     object-fit: contain;
     border: 1px solid #e0e0e0;
     border-radius: 4px;
     background: #fafafa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #2e3440;
+    padding: 4px;
+    cursor: pointer;
+}
+
+.thumb:hover {
+    border-color: #ee3126;
+}
+
+.thumb svg, .thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+/* Bibliothèque de goodies (grille de sélection) */
+.icon-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+    gap: 10px;
+}
+
+.icon-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 6px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    background: #fafafa;
+    cursor: pointer;
+    font-size: 12px;
+    text-align: center;
+    color: #2e3440;
+}
+
+.icon-card:hover {
+    border-color: #ee3126;
+    background: #fff5f4;
+}
+
+.icon-card svg {
+    width: 28px;
+    height: 28px;
+}
+
+/* Sélecteur de thème */
+.theme-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px;
+}
+
+.theme-card {
+    border: 2px solid transparent;
+    border-radius: 8px;
+    padding: 10px;
+    background: #fafafa;
+    cursor: pointer;
+    text-align: left;
+}
+
+.theme-card.selected {
+    border-color: #ee3126;
+    background: #fff5f4;
+}
+
+.theme-card .swatches {
+    display: flex;
+    height: 20px;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 6px;
+}
+
+.theme-card .swatches span {
+    flex: 1;
+}
+
+.theme-card .theme-name {
+    font-size: 13px;
+    font-weight: bold;
+}
+
+/* Sélecteur d'icône modal (réutilisé pour ajouter/changer un segment) */
+.icon-picker-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+}
+
+.icon-picker-panel {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    max-width: 640px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.icon-picker-panel h3 {
+    margin-top: 0;
 }
 
 .btn {

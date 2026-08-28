@@ -6,6 +6,7 @@
 
     let segments = [];
     let colors = [];
+    let accentColor = '#ee3126';
     let settings = {};
     let isSpinning = false;
 
@@ -16,6 +17,27 @@
         const G = (num >> 8 & 0x00FF) + amt;
         const B = (num & 0x0000FF) + amt;
         return '#' + (0x1000000 + (Math.min(255, R) << 16) + (Math.min(255, G) << 8) + Math.min(255, B)).toString(16).slice(1);
+    }
+
+    // Choisit un texte clair ou sombre selon la luminosité du segment, pour
+    // que le libellé reste lisible quel que soit le thème (clair ou foncé).
+    function readableTextColor(color) {
+        const num = parseInt(color.replace('#', ''), 16);
+        const r = (num >> 16) & 0xff;
+        const g = (num >> 8) & 0xff;
+        const b = num & 0xff;
+        const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+        return luminance > 0.6 ? '#1a1a1a' : '#ffffff';
+    }
+
+    function shadeColor(color, percent) {
+        const num = parseInt(color.replace('#', ''), 16);
+        const amt = Math.round(2.55 * percent);
+        const clamp = (v) => Math.min(255, Math.max(0, v));
+        const R = clamp((num >> 16) + amt);
+        const G = clamp(((num >> 8) & 0x00FF) + amt);
+        const B = clamp((num & 0x0000FF) + amt);
+        return '#' + (0x1000000 + (R << 16) + (G << 8) + B).toString(16).slice(1);
     }
 
     function generateWheel() {
@@ -105,7 +127,13 @@
             path.setAttribute('transform', `rotate(-90 ${cx} ${cy})`);
             svg.appendChild(path);
 
+            const segmentColor = colors[index % colors.length];
             const labelAngle = currentAngle + segmentAngle / 2;
+            const textColor = readableTextColor(segmentColor);
+            const textShadow = textColor === '#ffffff' ? '1px 1px 2px rgba(0,0,0,0.5)' : '1px 1px 2px rgba(255,255,255,0.4)';
+            const iconSvg = segment.imageUrl
+                ? `<img src="${segment.imageUrl}" alt="" style="width:3.4vmin;height:3.4vmin;object-fit:contain;display:block;margin:0 auto 2px;">`
+                : window.IconLibrary.renderSVG(segment.iconId, { size: 0 }).replace('<svg ', '<svg style="width:3.4vmin;height:3.4vmin;display:block;margin:0 auto 2px;color:' + textColor + ';" ');
             labelHtml += `
                 <div class="label" style="
                     position: absolute;
@@ -114,15 +142,15 @@
                     width: 16vmin;
                     transform: translate(-50%, -50%) rotate(${labelAngle}deg) translateY(-35vmin);
                     text-align: center;
-                    color: white;
+                    color: ${textColor};
                     font-weight: bold;
                     font-size: 2vmin;
-                    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+                    text-shadow: ${textShadow};
                     white-space: nowrap;
                     overflow: hidden;
                     pointer-events: none;
                     z-index: 1;
-                ">${segment.description}</div>
+                ">${iconSvg}${segment.description}</div>
             `;
 
             segment.segmentRange = [currentAngle, currentAngle + segmentAngle];
@@ -185,38 +213,54 @@
     }
 
     function showGiftImage(gift) {
-        if (!gift.imageUrl) return;
         const overlay = document.createElement('div');
         overlay.id = 'gift-overlay';
         overlay.style.cssText = `
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: rgba(0, 0, 0, 0.8); display: flex; justify-content: center;
-            align-items: center; z-index: 9999; opacity: 0;
+            background: rgba(0, 0, 0, 0.8); display: flex; flex-direction: column;
+            gap: 20px; justify-content: center; align-items: center; z-index: 9999; opacity: 0;
             transition: opacity 0.5s ease-in-out;
         `;
 
-        const img = document.createElement('img');
-        img.src = gift.imageUrl;
-        img.alt = gift.description;
-        img.style.cssText = `
-            max-width: 80vw; max-height: 80vh; border-radius: 10px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3); opacity: 0;
+        const visual = document.createElement('div');
+        visual.style.cssText = `
+            width: min(50vmin, 320px); height: min(50vmin, 320px); border-radius: 50%;
+            background: ${accentColor}; display: flex; justify-content: center; align-items: center;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4); opacity: 0;
             transform: scale(0.8); transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
         `;
 
-        overlay.appendChild(img);
+        if (gift.imageUrl) {
+            const img = document.createElement('img');
+            img.src = gift.imageUrl;
+            img.alt = gift.description;
+            img.style.cssText = 'max-width: 70%; max-height: 70%; object-fit: contain;';
+            visual.appendChild(img);
+        } else {
+            visual.innerHTML = window.IconLibrary.renderSVG(gift.iconId, { size: 0 })
+                .replace('<svg ', '<svg style="width:55%;height:55%;color:#ffffff;" ');
+        }
+
+        const label = document.createElement('div');
+        label.textContent = gift.description;
+        label.style.cssText = 'color:white; font-size: 28px; font-weight: bold; text-align:center; opacity:0; transition: opacity 0.5s ease-in-out;';
+
+        overlay.appendChild(visual);
+        overlay.appendChild(label);
         document.body.appendChild(overlay);
 
         const displayMs = settings.resultDisplayMs || 3000;
 
         setTimeout(() => { overlay.style.opacity = '1'; }, 10);
         setTimeout(() => {
-            img.style.opacity = '1';
-            img.style.transform = 'scale(1)';
+            visual.style.opacity = '1';
+            visual.style.transform = 'scale(1)';
+            label.style.opacity = '1';
         }, 250);
         setTimeout(() => {
-            img.style.opacity = '0';
-            img.style.transform = 'scale(0.8)';
+            visual.style.opacity = '0';
+            visual.style.transform = 'scale(0.8)';
+            label.style.opacity = '0';
             setTimeout(() => {
                 overlay.style.opacity = '0';
                 setTimeout(() => overlay.remove(), 500);
@@ -228,12 +272,18 @@
         const config = await window.ConfigStore.loadConfig();
         settings = config.settings;
         segments = config.segments;
-        colors = settings.colors && settings.colors.length ? settings.colors : ['#ee3126', '#4a4a4a', '#d0b580'];
+
+        const theme = window.ThemeLibrary.resolve(settings);
+        colors = theme.colors;
+        accentColor = theme.accentColor;
 
         if (titleEl) {
             titleEl.textContent = settings.title || 'Roue de la Fortune';
             document.title = settings.title || 'Roue de la Fortune';
         }
+
+        document.documentElement.style.setProperty('--accent-color', accentColor);
+        document.documentElement.style.setProperty('--accent-color-dark', shadeColor(accentColor, -25));
 
         generateWheel();
     }

@@ -1,5 +1,7 @@
 (function () {
     const CS = window.ConfigStore;
+    const IL = window.IconLibrary;
+    const TL = window.ThemeLibrary;
 
     let currentConfig = null;
 
@@ -8,10 +10,14 @@
         minTurns: document.getElementById('setting-min-turns'),
         maxTurns: document.getElementById('setting-max-turns'),
         displayMs: document.getElementById('setting-display-ms'),
+        themeGrid: document.getElementById('theme-grid'),
+        customPaletteSection: document.getElementById('custom-palette-section'),
+        customPaletteHint: document.getElementById('custom-palette-hint'),
         paletteList: document.getElementById('palette-list'),
         addColor: document.getElementById('add-color'),
+        iconGallery: document.getElementById('icon-gallery'),
         segmentsBody: document.getElementById('segments-body'),
-        addSegment: document.getElementById('add-segment'),
+        addBlankSegment: document.getElementById('add-blank-segment'),
         saveBtn: document.getElementById('save-btn'),
         exportBtn: document.getElementById('export-btn'),
         importInput: document.getElementById('import-input'),
@@ -27,31 +33,88 @@
         setTimeout(() => { el.statusBanner.className = ''; }, 3000);
     }
 
-    function readFormIntoConfig() {
-        currentConfig.settings.title = el.title.value.trim() || 'Roue de la Fortune';
-        currentConfig.settings.spinMinTurns = Number(el.minTurns.value) || 5;
-        currentConfig.settings.spinMaxTurns = Math.max(
-            currentConfig.settings.spinMinTurns,
-            Number(el.maxTurns.value) || 10
-        );
-        currentConfig.settings.resultDisplayMs = Number(el.displayMs.value) || 3000;
+    // --- Sélecteur d'icône réutilisable (modal) ---------------------------
+    function openIconPicker(onSelect) {
+        const overlay = document.createElement('div');
+        overlay.className = 'icon-picker-overlay';
+        overlay.innerHTML = `
+            <div class="icon-picker-panel">
+                <h3>Choisir un goodie</h3>
+                <div class="icon-grid" id="icon-picker-grid"></div>
+                <div class="toolbar">
+                    <button class="btn" id="icon-picker-cancel">Annuler</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
 
-        currentConfig.settings.colors = Array.from(
-            el.paletteList.querySelectorAll('input[type="color"]')
-        ).map((input) => input.value);
+        const grid = overlay.querySelector('#icon-picker-grid');
+        IL.list.forEach((icon) => {
+            const card = document.createElement('div');
+            card.className = 'icon-card';
+            card.innerHTML = `${IL.renderSVG(icon.id)}<span>${icon.label}</span>`;
+            card.addEventListener('click', () => {
+                onSelect(icon);
+                overlay.remove();
+            });
+            grid.appendChild(card);
+        });
 
-        const rows = Array.from(el.segmentsBody.querySelectorAll('tr'));
-        currentConfig.segments = rows.map((row) => ({
-            id: row.dataset.id,
-            description: row.querySelector('.segment-description').value.trim() || 'Lot',
-            weight: Number(row.querySelector('.segment-weight').value) || 1,
-            imageUrl: row.dataset.imageUrl || ''
-        }));
+        overlay.querySelector('#icon-picker-cancel').addEventListener('click', () => overlay.remove());
+        overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+    }
+
+    // --- Thème --------------------------------------------------------------
+    function renderThemeGrid() {
+        el.themeGrid.innerHTML = '';
+        const currentThemeId = currentConfig.settings.themeId || 'kuhn';
+
+        TL.list.forEach((theme) => {
+            const card = document.createElement('div');
+            card.className = 'theme-card' + (currentThemeId === theme.id ? ' selected' : '');
+            card.innerHTML = `
+                <div class="swatches">${theme.colors.map((c) => `<span style="background:${c}"></span>`).join('')}</div>
+                <div class="theme-name">${theme.label}</div>
+            `;
+            card.addEventListener('click', () => {
+                currentConfig.settings.themeId = theme.id;
+                renderThemeGrid();
+                el.customPaletteSection.style.display = 'none';
+                el.customPaletteHint.style.display = 'none';
+            });
+            el.themeGrid.appendChild(card);
+        });
+
+        const customCard = document.createElement('div');
+        customCard.className = 'theme-card' + (currentThemeId === 'custom' ? ' selected' : '');
+        customCard.innerHTML = `
+            <div class="swatches"><span style="background:linear-gradient(90deg,#ee3126,#4a4a4a,#d0b580,#2e3440)"></span></div>
+            <div class="theme-name">Personnalisé</div>
+        `;
+        customCard.addEventListener('click', () => {
+            currentConfig.settings.themeId = 'custom';
+            if (!currentConfig.settings.colors || !currentConfig.settings.colors.length) {
+                currentConfig.settings.colors = TL.get('kuhn').colors.slice();
+            }
+            if (!currentConfig.settings.accentColor) {
+                currentConfig.settings.accentColor = TL.get('kuhn').accentColor;
+            }
+            renderThemeGrid();
+            renderPalette();
+            el.customPaletteSection.style.display = '';
+            el.customPaletteHint.style.display = '';
+        });
+        el.themeGrid.appendChild(customCard);
+
+        const isCustom = currentThemeId === 'custom';
+        el.customPaletteSection.style.display = isCustom ? '' : 'none';
+        el.customPaletteHint.style.display = isCustom ? '' : 'none';
     }
 
     function renderPalette() {
         el.paletteList.innerHTML = '';
-        currentConfig.settings.colors.forEach((color, index) => {
+        const colors = currentConfig.settings.colors || [];
+        colors.forEach((color, index) => {
             const wrapper = document.createElement('div');
             wrapper.className = 'field';
             wrapper.innerHTML = `
@@ -62,37 +125,74 @@
                 </div>
             `;
             wrapper.querySelector('.remove-color').addEventListener('click', () => {
-                if (currentConfig.settings.colors.length <= 1) {
+                if (colors.length <= 1) {
                     showStatus('Il faut garder au moins une couleur.', 'error');
                     return;
                 }
-                currentConfig.settings.colors.splice(index, 1);
+                colors.splice(index, 1);
                 renderPalette();
             });
             el.paletteList.appendChild(wrapper);
         });
     }
 
+    // --- Bibliothèque de goodies ---------------------------------------------
+    function renderIconGallery() {
+        el.iconGallery.innerHTML = '';
+        IL.list.forEach((icon) => {
+            const card = document.createElement('div');
+            card.className = 'icon-card';
+            card.innerHTML = `${IL.renderSVG(icon.id)}<span>${icon.label}</span>`;
+            card.addEventListener('click', () => {
+                renderSegmentRow({
+                    id: 'seg-' + Date.now() + '-' + Math.round(Math.random() * 999),
+                    description: icon.label,
+                    iconId: icon.id,
+                    imageUrl: '',
+                    weight: 100
+                });
+                showStatus(`« ${icon.label} » ajouté aux segments.`, 'success');
+            });
+            el.iconGallery.appendChild(card);
+        });
+    }
+
+    // --- Segments -------------------------------------------------------------
+    function segmentThumbHTML(segment) {
+        return segment.imageUrl
+            ? `<img src="${segment.imageUrl}" alt="">`
+            : IL.renderSVG(segment.iconId || 'mystery');
+    }
+
     function renderSegmentRow(segment) {
         const row = document.createElement('tr');
         row.dataset.id = segment.id;
+        row.dataset.iconId = segment.iconId || 'mystery';
         row.dataset.imageUrl = segment.imageUrl || '';
 
         row.innerHTML = `
             <td>
-                <img class="thumb" src="${segment.imageUrl || ''}" alt="">
+                <div class="thumb" title="Changer l'icône">${segmentThumbHTML(segment)}</div>
                 <input type="file" accept="image/*" class="segment-image-input" style="display:none;">
             </td>
             <td><input type="text" class="segment-description" value="${segment.description}"></td>
             <td><input type="number" class="segment-weight" min="1" step="1" value="${segment.weight}"></td>
             <td>
-                <button type="button" class="btn btn-icon segment-upload" title="Changer l'image">📷</button>
+                <button type="button" class="btn btn-icon segment-upload" title="Image personnalisée">📷</button>
                 <button type="button" class="btn btn-icon btn-danger segment-remove" title="Supprimer">🗑</button>
             </td>
         `;
 
         const thumb = row.querySelector('.thumb');
         const fileInput = row.querySelector('.segment-image-input');
+
+        thumb.addEventListener('click', () => {
+            openIconPicker((icon) => {
+                row.dataset.iconId = icon.id;
+                row.dataset.imageUrl = '';
+                thumb.innerHTML = IL.renderSVG(icon.id);
+            });
+        });
 
         row.querySelector('.segment-upload').addEventListener('click', () => fileInput.click());
         fileInput.addEventListener('change', async () => {
@@ -101,7 +201,7 @@
             try {
                 const dataUrl = await CS.resizeImageFile(file);
                 row.dataset.imageUrl = dataUrl;
-                thumb.src = dataUrl;
+                thumb.innerHTML = `<img src="${dataUrl}" alt="">`;
             } catch (err) {
                 showStatus('Image illisible : ' + err.message, 'error');
             }
@@ -124,8 +224,35 @@
         el.minTurns.value = currentConfig.settings.spinMinTurns;
         el.maxTurns.value = currentConfig.settings.spinMaxTurns;
         el.displayMs.value = currentConfig.settings.resultDisplayMs;
+        renderThemeGrid();
         renderPalette();
         renderSegments();
+    }
+
+    function readFormIntoConfig() {
+        currentConfig.settings.title = el.title.value.trim() || 'Roue de la Fortune';
+        currentConfig.settings.spinMinTurns = Number(el.minTurns.value) || 5;
+        currentConfig.settings.spinMaxTurns = Math.max(
+            currentConfig.settings.spinMinTurns,
+            Number(el.maxTurns.value) || 10
+        );
+        currentConfig.settings.resultDisplayMs = Number(el.displayMs.value) || 3000;
+
+        if (currentConfig.settings.themeId === 'custom') {
+            currentConfig.settings.colors = Array.from(
+                el.paletteList.querySelectorAll('input[type="color"]')
+            ).map((input) => input.value);
+            currentConfig.settings.accentColor = currentConfig.settings.colors[0] || '#ee3126';
+        }
+
+        const rows = Array.from(el.segmentsBody.querySelectorAll('tr'));
+        currentConfig.segments = rows.map((row) => ({
+            id: row.dataset.id,
+            description: row.querySelector('.segment-description').value.trim() || 'Lot',
+            weight: Number(row.querySelector('.segment-weight').value) || 1,
+            iconId: row.dataset.iconId || 'mystery',
+            imageUrl: row.dataset.imageUrl || ''
+        }));
     }
 
     function refreshPreview() {
@@ -148,10 +275,11 @@
             renderPalette();
         });
 
-        el.addSegment.addEventListener('click', () => {
+        el.addBlankSegment.addEventListener('click', () => {
             renderSegmentRow({
                 id: 'seg-' + Date.now(),
                 description: 'Nouveau lot',
+                iconId: 'mystery',
                 imageUrl: '',
                 weight: 100
             });
@@ -187,6 +315,8 @@
         });
 
         el.refreshPreview.addEventListener('click', refreshPreview);
+
+        renderIconGallery();
     }
 
     init();

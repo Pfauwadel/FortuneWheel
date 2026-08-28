@@ -154,7 +154,7 @@ body {
     height: 0;
     border-left: 3vmin solid transparent;
     border-right: 3vmin solid transparent;
-    border-top: 6vmin solid red;
+    border-top: 6vmin solid var(--accent-color, #ee3126);
     z-index: 10;
 }
 
@@ -162,7 +162,7 @@ body {
     margin-top: 20px;
     padding: 10px 20px;
     font-size: 18px;
-    background-color: #ee3126;
+    background-color: var(--accent-color, #ee3126);
     color: white;
     border: none;
     border-radius: 5px;
@@ -171,7 +171,7 @@ body {
 }
 
 #spin:hover {
-    background-color: #990033;
+    background-color: var(--accent-color-dark, #990033);
 }
 
 #spin:disabled {
