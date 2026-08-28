@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guide & documentation — Roue de la Fortune</title>
+    <link rel="icon" href="assets/favicon.png">
+    <link rel="manifest" href="manifest.json">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/guide.css">
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').then((reg) => reg.update());
+            });
+            let refreshing = false;
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+                if (refreshing) return;
+                refreshing = true;
+                window.location.reload();
+            });
+        }
+    </script>
+</head>
+
+<body>
+    <div class="top-rule"></div>
+
+    <header class="site-head">
+        <a class="site-brand" href="index.html">
+            <span class="brand-mark">K</span>
+            <span>Roue de la Fortune</span>
+        </a>
+        <nav class="site-nav">
+            <a href="wheel.html">Lancer la roue</a>
+            <a href="admin.html">Administration</a>
+            <a href="guide.html">Guide</a>
+        </nav>
+    </header>
+
+    <div class="guide-hero">
+        <div class="eyebrow"><i></i><span>Guide & documentation</span></div>
+        <h1>Comprendre et installer l'application</h1>
+        <p>
+            Comment fonctionne la roue, comment installer l'application pour qu'elle marche sans connexion
+            sur un poste de stand, et comment régler lots, thème et sécurité depuis l'administration.
+        </p>
+    </div>
+
+    <div class="guide-shell">
+        <nav class="guide-toc">
+            <span class="toc-label">Sommaire</span>
+            <a href="#vue-ensemble">Vue d'ensemble</a>
+            <a href="#installation">Installer hors-ligne</a>
+            <a href="#ecran-public">Écran public</a>
+            <a href="#administration">Administration</a>
+            <a href="#configuration">Configuration & sauvegarde</a>
+            <a href="#depannage">Dépannage / FAQ</a>
+        </nav>
+
+        <div class="guide-content">
+
+            <section class="guide-section" id="vue-ensemble">
+                <div class="section-eyebrow">01 · Vue d'ensemble</div>
+                <h2>Trois pages, un seul site</h2>
+                <p>
+                    L'application est un site 100&nbsp;% statique (aucun serveur, aucune base de données) composé
+                    de trois pages autonomes. Elles partagent la même configuration.
+                </p>
+                <div class="map-grid">
+                    <div class="map-card">
+                        <span class="map-file">index.html</span>
+                        <p>Page de présentation. Sert de vitrine et de point d'entrée vers la roue, l'administration et ce guide.</p>
+                    </div>
+                    <div class="map-card">
+                        <span class="map-file">wheel.html</span>
+                        <p>L'écran public affiché sur le stand : c'est cette page qu'on installe et qu'on laisse ouverte toute la journée.</p>
+                    </div>
+                    <div class="map-card">
+                        <span class="map-file">admin.html</span>
+                        <p>Réglage des lots, du thème, des animations et de la sécurité, avec un aperçu de la roue en direct.</p>
+                    </div>
+                </div>
+                <p>
+                    Aucune donnée ne part vers un serveur externe : tout est lu et écrit dans le navigateur du poste
+                    (voir <a href="#configuration">Configuration & sauvegarde</a>).
+                </p>
+            </section>
+
+            <section class="guide-section" id="installation">
+                <div class="section-eyebrow">02 · Installation</div>
+                <h2>Installer l'application hors-ligne</h2>
+                <p>
+                    L'application est une <strong>PWA</strong> (Progressive Web App) : une fois installée sur un
+                    poste, elle se lance comme un programme local, avec sa propre fenêtre, et continue de
+                    fonctionner sans connexion internet.
+                </p>
+
+                <div class="callout">
+                    Étape obligatoire avant toute installation : ouvrir <code>wheel.html</code> au moins une fois
+                    <strong>en étant connecté à internet</strong>, pour que le navigateur télécharge et mette en
+                    cache tous les fichiers de l'application.
+                </div>
+
+                <h3>Installation en un clic</h3>
+                <p>Si votre navigateur le permet, le bouton ci-dessous lance l'installation directement :</p>
+                <div class="install-box">
+                    <button class="install-cta" data-install-btn data-install-state="ready">Installer l'application</button>
+                    <p class="install-note" data-install-state="unavailable">
+                        Ce navigateur ne propose pas d'installation en un clic ici (ou l'application est déjà
+                        installée) — utilisez les instructions manuelles ci-dessous selon votre navigateur.
+                    </p>
+                    <p class="install-note" data-install-state="ios">
+                        Sur iPhone/iPad, Safari n'offre pas de bouton d'installation automatique : suivez les
+                        étapes « Safari (iPhone / iPad) » ci-dessous.
+                    </p>
+                    <p class="install-note" data-install-state="installed">
+                        ✓ L'application est déjà installée sur cet appareil.
+                    </p>
+                </div>
+
+                <h3>Instructions manuelles par navigateur</h3>
+                <div class="browser-grid">
+                    <div class="browser-card">
+                        <span class="browser-name">Chrome / Edge (Windows, macOS)</span>
+                        <ol>
+                            <li>Ouvrir <code>wheel.html</code> (ou la page d'accueil).</li>
+                            <li>Cliquer sur l'icône d'installation ⊕ dans la barre d'adresse.</li>
+                            <li>Confirmer « Installer ».</li>
+                        </ol>
+                    </div>
+                    <div class="browser-card">
+                        <span class="browser-name">Chrome (Android)</span>
+                        <ol>
+                            <li>Ouvrir la page dans Chrome.</li>
+                            <li>Menu ⋮ → « Installer l'application » (ou « Ajouter à l'écran d'accueil »).</li>
+                            <li>Confirmer.</li>
+                        </ol>
+                    </div>
+                    <div class="browser-card">
+                        <span class="browser-name">Safari (iPhone / iPad)</span>
+                        <ol>
+                            <li>Ouvrir la page dans Safari.</li>
+                            <li>Bouton Partager (carré avec flèche) en bas de l'écran.</li>
+                            <li>« Sur l'écran d'accueil » → « Ajouter ».</li>
+                        </ol>
+                    </div>
+                    <div class="browser-card">
+                        <span class="browser-name">Firefox</span>
+                        <ol>
+                            <li>Firefox ne propose pas d'installation PWA complète sur tous les systèmes.</li>
+                            <li>Utilisez plutôt Chrome ou Edge pour un vrai mode hors-ligne installé.</li>
+                            <li>Sinon, un simple raccourci/onglet épinglé reste possible.</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <h3>Après installation</h3>
+                <p>
+                    L'application s'ouvre depuis son icône, dans sa propre fenêtre, sans barre d'adresse. Elle
+                    fonctionne ensuite sans connexion : le service worker (<code>sw.js</code>) sert les fichiers
+                    depuis le cache local dès que le réseau est indisponible, et se met à jour automatiquement
+                    dès qu'une connexion est de nouveau disponible.
+                </p>
+            </section>
+
+            <section class="guide-section" id="ecran-public">
+                <div class="section-eyebrow">03 · Écran public</div>
+                <h2>Ce que voient les visiteurs</h2>
+                <p>
+                    <code>wheel.html</code> affiche la roue en plein écran : titre, roue animée, bouton « Tourner
+                    la roue », et un bandeau défilant listant les lots encore en jeu.
+                </p>
+                <ul>
+                    <li><strong>Tirage</strong> — le poids de chaque lot détermine sa probabilité relative parmi les lots encore en stock.</li>
+                    <li><strong>Stock</strong> — un lot avec un stock épuisé reste visible mais grisé, et ne peut plus être tiré.</li>
+                    <li><strong>Confettis & sons</strong> — activables/désactivables depuis l'administration, onglet « Animations ».</li>
+                    <li><strong>Mode attraction</strong> — après une période d'inactivité, le bouton pulse pour inciter les passants à jouer.</li>
+                </ul>
+                <p>
+                    L'icône ⚙ en haut à droite ouvre l'administration — pensez à activer un <a href="#administration">verrou PIN</a>
+                    si le poste est en libre accès.
+                </p>
+            </section>
+
+            <section class="guide-section" id="administration">
+                <div class="section-eyebrow">04 · Administration</div>
+                <h2>Régler la roue depuis admin.html</h2>
+                <p>
+                    L'administration est organisée en onglets, avec un aperçu de la roue toujours visible à
+                    droite pendant la saisie (avant même d'enregistrer).
+                </p>
+                <h3>Lots</h3>
+                <p>
+                    Chaque segment a une description, une icône, un poids (probabilité relative) et un stock
+                    initial optionnel (vide = illimité). La bibliothèque de goodies permet d'ajouter un lot
+                    préconfiguré en un clic. « Réinitialiser les stocks » remet tous les compteurs à leur valeur
+                    initiale, par exemple entre deux journées d'un même évènement.
+                </p>
+                <h3>Réglages</h3>
+                <p>Titre affiché, texte au centre de la roue, nombre de tours min/max et durée d'affichage du lot gagné.</p>
+                <h3>Thème</h3>
+                <p>
+                    Dix palettes prédéfinies, ou génération automatique d'une palette harmonieuse à partir d'une
+                    seule couleur de marque. Le mode « Duo » alterne deux teintes sur la roue pour une meilleure
+                    lisibilité à distance ; le mode « Palette complète » alterne les six teintes du thème.
+                    <strong>« Appliquer le thème »</strong> est nécessaire pour l'enregistrer sur ce poste — choisir
+                    une carte ne suffit pas.
+                </p>
+                <h3>Animations</h3>
+                <p>Confettis, sons synthétisés et mode attraction, chacun activable indépendamment.</p>
+                <h3>Sécurité</h3>
+                <p>
+                    Un code PIN local protège l'accès à l'administration sur un poste partagé. Il n'est
+                    <strong>jamais</strong> inclus dans <code>config.json</code> ni dans un export : c'est un
+                    verrou de confort, pas un mécanisme de sécurité fort. Un PIN oublié se contourne en vidant
+                    les données du site dans le navigateur (voir <a href="#depannage">Dépannage</a>).
+                </p>
+            </section>
+
+            <section class="guide-section" id="configuration">
+                <div class="section-eyebrow">05 · Configuration</div>
+                <h2>Comment la configuration est stockée</h2>
+                <p>
+                    <code>config.json</code>, dans le dépôt du site, est la configuration par défaut vue par
+                    n'importe qui ouvrant le site pour la première fois.
+                </p>
+                <p>
+                    Toute modification faite dans <code>admin.html</code> est enregistrée dans le
+                    <code>localStorage</code> du navigateur utilisé : elle surcharge <code>config.json</code>
+                    <strong>sur cet appareil uniquement</strong>, et reste disponible hors-ligne après
+                    installation.
+                </p>
+                <div class="callout">
+                    Pour changer la configuration par défaut vue par <strong>tout le monde</strong> : dans
+                    l'onglet « Sauvegarde » de l'administration, cliquer sur <strong>Exporter</strong>, puis
+                    remplacer <code>config.json</code> dans le dépôt (commit + push).
+                </div>
+                <p>
+                    « Importer un fichier » permet de recharger une configuration exportée précédemment (par
+                    exemple pour dupliquer les réglages d'un poste sur un autre). « Réinitialiser » efface la
+                    surcharge locale et revient à <code>config.json</code>.
+                </p>
+            </section>
+
+            <section class="guide-section" id="depannage">
+                <div class="section-eyebrow">06 · Dépannage</div>
+                <h2>Questions fréquentes</h2>
+
+                <div class="faq-item">
+                    <h3>Une modification n'apparaît pas, même après rafraîchissement</h3>
+                    <p>
+                        Le service worker recharge automatiquement dès qu'une nouvelle version est détectée sur
+                        le réseau. Si l'écran reste figé, vérifiez la connexion internet du poste : sans réseau,
+                        c'est la dernière version mise en cache qui s'affiche, ce qui est le comportement normal
+                        du mode hors-ligne.
+                    </p>
+                </div>
+                <div class="faq-item">
+                    <h3>J'ai oublié le code PIN de l'administration</h3>
+                    <p>
+                        Le PIN est stocké uniquement dans le navigateur de ce poste. Pour le retirer : effacer les
+                        données du site (Réglages du navigateur → Confidentialité → Données de <code>wheel.html</code>
+                        / <code>admin.html</code>), ce qui remet aussi la configuration locale à <code>config.json</code>.
+                    </p>
+                </div>
+                <div class="faq-item">
+                    <h3>Le bouton d'installation ne s'affiche pas</h3>
+                    <p>
+                        Certains navigateurs (Firefox, Safari sur ordinateur) ne proposent pas d'invite
+                        d'installation automatique, ou l'application est déjà installée. Utilisez les
+                        instructions manuelles de la section <a href="#installation">Installer hors-ligne</a>.
+                    </p>
+                </div>
+                <div class="faq-item">
+                    <h3>L'application ne fonctionne pas hors-ligne après installation</h3>
+                    <p>
+                        Assurez-vous d'avoir ouvert <code>wheel.html</code> au moins une fois en étant connecté,
+                        pour que tous les fichiers soient mis en cache avant de couper le réseau.
+                    </p>
+                </div>
+                <div class="callout warn">
+                    Un service worker ne fonctionne pas en ouvrant un fichier directement (<code>file://</code>).
+                    Pour développer ou tester en local, servir le dossier via un petit serveur HTTP, par exemple
+                    <code>npx serve .</code>
+                </div>
+            </section>
+
+        </div>
+    </div>
+
+    <script src="js/install-prompt.js"></script>
+</body>
+
+</html>

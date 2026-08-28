@@ -55,12 +55,22 @@ body {
     color: var(--gold);
 }
 
-.site-head span.meta {
+.site-nav {
+    display: flex;
+    align-items: center;
+    gap: 26px;
+}
+
+.site-nav a {
     font-size: 13px;
+    font-weight: 500;
     letter-spacing: 0.1em;
     text-transform: uppercase;
     color: #8b909b;
+    text-decoration: none;
 }
+
+.site-nav a:hover { color: var(--cream); }
 
 .hero {
     max-width: 1440px;
@@ -224,6 +234,15 @@ body {
 .card a { color: var(--gold); }
 .card a:hover { color: var(--accent); }
 .card code { color: var(--cream); }
+
+[data-install-state] { display: none; margin: 0; }
+
+.install-btn-inline {
+    margin-top: 6px;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+}
 
 footer {
     padding: 28px 60px;

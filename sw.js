@@ -4,18 +4,20 @@
 //
 // Incrémenter CACHE_NAME force la mise à jour complète du cache lors du
 // prochain déploiement (ex: passer à 'kuhn-wheel-v2').
-const CACHE_NAME = 'kuhn-wheel-v6';
+const CACHE_NAME = 'kuhn-wheel-v7';
 
 const urlsToCache = [
     './',
     './index.html',
     './wheel.html',
     './admin.html',
+    './guide.html',
     './manifest.json',
     './config.json',
     './css/style.css',
     './css/admin.css',
     './css/landing.css',
+    './css/guide.css',
     './js/config-store.js',
     './js/icon-library.js',
     './js/theme-library.js',
@@ -24,6 +26,7 @@ const urlsToCache = [
     './js/admin-tabs.js',
     './js/wheel.js',
     './js/admin.js',
+    './js/install-prompt.js',
     './assets/icon-192.png',
     './assets/icon-512.png',
     './assets/icon-maskable-512.png',

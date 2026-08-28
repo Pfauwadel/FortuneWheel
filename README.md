@@ -16,6 +16,7 @@ Publié via GitHub Pages : voir l'onglet **About** du dépôt pour le lien, ou
 | `index.html` | Page de présentation (landing) |
 | `wheel.html` | La roue (application publique, PWA installable) |
 | `admin.html` | Administration : segments, images, couleurs, réglages |
+| `guide.html` | Guide & documentation : installation hors-ligne, tutoriel, FAQ |
 | `config.json` | Configuration par défaut, servie à tout le monde |
 | `js/config-store.js` | Chargement/sauvegarde de la config (config.json + surcharge localStorage) |
 | `js/icon-library.js` | Bibliothèque d'icônes de goodies (SVG inline) |
@@ -24,6 +25,7 @@ Publié via GitHub Pages : voir l'onglet **About** du dépôt pour le lien, ou
 | `js/admin.js` | Logique de l'interface d'administration |
 | `js/admin-lock.js` | Verrou PIN local de l'administration |
 | `js/sound.js` | Effets sonores synthétisés (Web Audio) |
+| `js/install-prompt.js` | Capte l'invite d'installation PWA pour le bouton « Installer » |
 | `manifest.json`, `sw.js` | PWA (installation hors-ligne) |
 | `assets/` | Icônes de l'application (PWA) |
 
@@ -50,9 +52,13 @@ Publié via GitHub Pages : voir l'onglet **About** du dépôt pour le lien, ou
 1. Ouvrir `wheel.html` (ou la page d'accueil) avec Chrome ou Edge, en ligne,
    au moins une fois.
 2. Cliquer sur l'icône d'installation dans la barre d'adresse (ou menu ⋮ →
-   « Installer l'application »).
+   « Installer l'application »), ou utiliser le bouton « Installer »
+   proposé sur la page d'accueil / le guide.
 3. L'application s'ouvre ensuite comme un programme local et fonctionne sans
    connexion internet.
+
+Voir `guide.html` pour le détail par navigateur (Chrome, Edge, Android,
+Safari iOS) et une documentation complète du fonctionnement de l'application.
 
 ## Développement local
 

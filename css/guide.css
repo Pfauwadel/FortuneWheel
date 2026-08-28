@@ -1,0 +1,333 @@
+/* Page documentation / tutoriel — même socle visuel que landing.css
+   (bandeau, dorures, fond sombre), avec une mise en page à deux colonnes :
+   sommaire collant à gauche, contenu à droite. */
+
+:root {
+    --accent: #ee3126;
+    --gold: #d0b580;
+    --cream: #eeece0;
+    --ink: #f4f3f0;
+    --muted: #9ba0ab;
+    --bg: #12141a;
+    --panel: #1a1d24;
+    --line: rgba(255, 255, 255, 0.08);
+}
+
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    font-family: 'Space Grotesk', 'Segoe UI', Arial, sans-serif;
+    background: var(--bg);
+    color: var(--cream);
+}
+
+.top-rule { height: 6px; background: var(--accent); }
+
+.site-head {
+    padding: 24px 60px;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.site-brand {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.26em;
+    text-transform: uppercase;
+    color: var(--ink);
+    text-decoration: none;
+}
+
+.brand-mark {
+    width: 40px;
+    height: 40px;
+    border: 1px solid rgba(208, 181, 128, 0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: var(--gold);
+    flex-shrink: 0;
+}
+
+.site-nav {
+    display: flex;
+    align-items: center;
+    gap: 26px;
+}
+
+.site-nav a {
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-decoration: none;
+}
+
+.site-nav a:hover { color: var(--cream); }
+
+.guide-hero {
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 56px 60px 0;
+}
+
+.guide-hero .eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.26em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 18px;
+}
+
+.guide-hero .eyebrow i { display: block; width: 42px; height: 2px; background: var(--accent); }
+
+.guide-hero h1 {
+    margin: 0 0 14px;
+    font-family: 'Barlow Condensed', 'Arial Narrow', Impact, sans-serif;
+    font-weight: 700;
+    font-size: clamp(36px, 4.6vw, 60px);
+    line-height: 0.95;
+    text-transform: uppercase;
+    color: var(--ink);
+}
+
+.guide-hero p {
+    margin: 0;
+    max-width: 720px;
+    font-size: 17px;
+    line-height: 1.6;
+    color: #a4a9b4;
+}
+
+.guide-shell {
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 44px 60px 90px;
+    display: grid;
+    grid-template-columns: 260px minmax(0, 1fr);
+    gap: 56px;
+    align-items: start;
+}
+
+.guide-toc {
+    position: sticky;
+    top: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.guide-toc .toc-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 10px;
+}
+
+.guide-toc a {
+    padding: 9px 0;
+    border-left: 2px solid transparent;
+    padding-left: 14px;
+    font-size: 14px;
+    color: #b7bbc4;
+    text-decoration: none;
+}
+
+.guide-toc a:hover { color: var(--cream); border-left-color: rgba(208, 181, 128, 0.5); }
+
+.guide-content { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+
+.guide-section {
+    padding: 40px 0;
+    border-bottom: 1px solid var(--line);
+}
+
+.guide-section:last-child { border-bottom: none; }
+
+.guide-section .section-eyebrow {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 10px;
+}
+
+.guide-section h2 {
+    margin: 0 0 16px;
+    font-family: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+    font-weight: 600;
+    font-size: 32px;
+    line-height: 1.05;
+    text-transform: uppercase;
+    color: var(--ink);
+}
+
+.guide-section h3 {
+    margin: 28px 0 10px;
+    font-family: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+    font-weight: 600;
+    font-size: 19px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--ink);
+}
+
+.guide-section p, .guide-section li { font-size: 15px; line-height: 1.7; color: #b7bbc4; }
+.guide-section p { margin: 0 0 14px; }
+.guide-section ol, .guide-section ul { margin: 0 0 14px; padding-left: 22px; }
+.guide-section a { color: var(--gold); }
+.guide-section a:hover { color: var(--accent); }
+.guide-section code {
+    padding: 2px 6px;
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--cream);
+    font-family: 'Space Grotesk', monospace;
+    font-size: 0.92em;
+}
+
+.guide-section strong { color: var(--cream); }
+
+/* Grille des lieux de l'app (roue / admin / config) */
+.map-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px;
+    margin: 6px 0 14px;
+}
+
+.map-card {
+    padding: 18px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+}
+
+.map-card .map-file {
+    display: inline-block;
+    margin-bottom: 8px;
+    font-family: 'Space Grotesk', monospace;
+    font-size: 12px;
+    color: var(--gold);
+}
+
+.map-card p { margin: 0; font-size: 13.5px; color: var(--muted); }
+
+/* Bouton d'installation + états */
+.install-box {
+    padding: 24px;
+    background: var(--panel);
+    border: 1px solid rgba(208, 181, 128, 0.3);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+    margin: 6px 0 22px;
+}
+
+[data-install-state] { display: none; margin: 0; }
+
+.install-cta {
+    padding: 16px 30px;
+    border: none;
+    background: var(--accent);
+    color: #fff;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    cursor: pointer;
+}
+
+.install-cta:hover { background: #c0261d; }
+.install-cta:disabled { opacity: 0.6; cursor: wait; }
+
+.install-note { font-size: 13.5px; color: var(--muted); }
+
+/* Cartes par navigateur */
+.browser-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
+    margin: 6px 0 14px;
+}
+
+.browser-card {
+    padding: 20px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+}
+
+.browser-card .browser-name {
+    display: block;
+    margin-bottom: 10px;
+    font-family: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+    font-weight: 600;
+    font-size: 16px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink);
+}
+
+.browser-card ol { margin: 0; padding-left: 18px; }
+.browser-card li { font-size: 13.5px; color: var(--muted); margin-bottom: 4px; }
+
+/* Encadré d'avertissement / astuce */
+.callout {
+    padding: 16px 20px;
+    background: rgba(208, 181, 128, 0.08);
+    border-left: 3px solid var(--gold);
+    font-size: 14px;
+    line-height: 1.6;
+    color: #cfcabb;
+    margin: 6px 0 18px;
+}
+
+.callout.warn {
+    background: rgba(238, 49, 38, 0.08);
+    border-left-color: var(--accent);
+    color: #ecc3c0;
+}
+
+/* FAQ */
+.faq-item { padding: 18px 0; border-top: 1px solid var(--line); }
+.faq-item:first-child { border-top: none; }
+.faq-item h3 { margin: 0 0 8px; }
+.faq-item p { margin: 0; }
+
+@media (max-width: 1000px) {
+    .guide-shell { grid-template-columns: 1fr; }
+    .guide-toc {
+        position: static;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 4px 18px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid var(--line);
+        margin-bottom: 14px;
+    }
+    .guide-toc a { padding-left: 0; border-left: none; }
+}
+
+@media (max-width: 700px) {
+    .site-head, .guide-hero, .guide-shell { padding-left: 24px; padding-right: 24px; }
+    .site-nav { gap: 16px; }
+}
