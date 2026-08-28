@@ -16,13 +16,17 @@
             spinMinTurns: 5,
             spinMaxTurns: 10,
             resultDisplayMs: 3000,
-            themeId: 'kuhn'
+            themeId: 'kuhn',
+            confettiEnabled: true,
+            soundEnabled: true,
+            attractModeEnabled: true,
+            attractIdleSeconds: 45
         },
         segments: [
-            { id: 'seg-1', description: 'Stylo', iconId: 'pen', weight: 100 },
-            { id: 'seg-2', description: 'Tasse / Mug', iconId: 'cup', weight: 100 },
-            { id: 'seg-3', description: 'Porte-clés', iconId: 'keychain', weight: 100 },
-            { id: 'seg-4', description: 'Cadeau mystère', iconId: 'mystery', weight: 100 }
+            { id: 'seg-1', description: 'Stylo', iconId: 'pen', weight: 100, initialStock: null, stock: null },
+            { id: 'seg-2', description: 'Tasse / Mug', iconId: 'cup', weight: 100, initialStock: null, stock: null },
+            { id: 'seg-3', description: 'Porte-clés', iconId: 'keychain', weight: 100, initialStock: null, stock: null },
+            { id: 'seg-4', description: 'Cadeau mystère', iconId: 'mystery', weight: 100, initialStock: null, stock: null }
         ]
     };
 
@@ -56,12 +60,25 @@
                 if (!iconId && !imageUrl) {
                     iconId = 'mystery';
                 }
+
+                const initialStock = (seg.initialStock === null || seg.initialStock === undefined || seg.initialStock === '')
+                    ? null
+                    : Math.max(0, Number(seg.initialStock));
+                // Le stock "restant" évolue au fil des tirages (persisté par
+                // recordWin) ; s'il n'a jamais été initialisé, il démarre au
+                // stock initial défini par l'admin.
+                const stock = (seg.stock === null || seg.stock === undefined || seg.stock === '')
+                    ? initialStock
+                    : Math.max(0, Number(seg.stock));
+
                 return {
                     id: seg.id || `seg-${index + 1}`,
                     description: seg.description || '',
                     iconId,
                     imageUrl,
-                    weight: Number(seg.weight) > 0 ? Number(seg.weight) : 1
+                    weight: Number(seg.weight) > 0 ? Number(seg.weight) : 1,
+                    initialStock,
+                    stock
                 };
             });
         }
@@ -105,6 +122,15 @@
 
     function clearLocalOverride() {
         localStorage.removeItem(STORAGE_KEY);
+    }
+
+    // Remet le stock restant de chaque lot à son stock initial (utile entre
+    // deux journées de salon, sans avoir à ressaisir les quantités).
+    function resetStocks(config) {
+        config.segments.forEach((seg) => {
+            seg.stock = seg.initialStock;
+        });
+        return config;
     }
 
     function exportConfigFile(config) {
@@ -176,6 +202,7 @@
         loadConfig,
         saveConfig,
         clearLocalOverride,
+        resetStocks,
         hasLocalOverride,
         exportConfigFile,
         importConfigFile,

@@ -6,7 +6,7 @@ body {
     justify-content: center;
     height: 100vh;
     margin: 0;
-    background-color: #f0f0f0;
+    background-color: var(--bg-color, #f0f0f0);
     overflow: hidden;
 }
 
@@ -29,7 +29,6 @@ body {
 .square {
     width: 40px;
     height: 40px;
-    background: #ee3126;
     animation: rotate 20s infinite linear;
 }
 
@@ -37,7 +36,6 @@ body {
     width: 60px;
     height: 60px;
     border-radius: 50%;
-    background: #4a4a4a;
     animation: pulse 15s infinite alternate;
 }
 
@@ -46,14 +44,13 @@ body {
     height: 0;
     border-left: 25px solid transparent;
     border-right: 25px solid transparent;
-    border-bottom: 50px solid #d0b580;
+    border-bottom: 50px solid;
     animation: float 12s infinite ease-in-out;
 }
 
 .rectangle {
     width: 80px;
     height: 30px;
-    background: #2e3440;
     animation: slide 18s infinite linear;
 }
 
@@ -93,7 +90,6 @@ body {
     position: absolute;
     width: 2px;
     height: 2px;
-    background-color: #ee3126;
     opacity: 0.5;
     animation: sparkle 8s infinite linear;
 }
@@ -110,7 +106,7 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background: radial-gradient(circle at center, transparent 0%, #2e3440 80%);
+    background: radial-gradient(circle at center, transparent 0%, var(--overlay-color, #2e3440) 80%);
     z-index: 5;
     animation: pulse-overlay 10s infinite alternate;
 }
@@ -123,7 +119,7 @@ body {
 #wheel-title {
     position: relative;
     z-index: 10;
-    color: #2e3440;
+    color: var(--title-color, #2e3440);
     text-shadow: 0 1px 2px rgba(255,255,255,0.6);
     margin: 0 0 10px 0;
     text-align: center;
@@ -156,6 +152,17 @@ body {
     border-right: 3vmin solid transparent;
     border-top: 6vmin solid var(--accent-color, #ee3126);
     z-index: 10;
+    transform-origin: top center;
+}
+
+#pointer.tick {
+    animation: pointer-tick 0.12s ease-out;
+}
+
+@keyframes pointer-tick {
+    0% { transform: translateX(-50%) scale(1); }
+    50% { transform: translateX(-50%) scale(1.18); }
+    100% { transform: translateX(-50%) scale(1); }
 }
 
 #spin {
@@ -168,15 +175,29 @@ body {
     border-radius: 5px;
     cursor: pointer;
     z-index: 10;
+    transition: transform 0.1s ease, background-color 0.2s ease;
 }
 
 #spin:hover {
     background-color: var(--accent-color-dark, #990033);
 }
 
+#spin:active {
+    transform: scale(0.96);
+}
+
 #spin:disabled {
     background-color: #cccccc;
     cursor: not-allowed;
+}
+
+#spin.attract {
+    animation: attract-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes attract-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 var(--accent-color, #ee3126); }
+    50% { box-shadow: 0 0 0 14px rgba(0, 0, 0, 0); }
 }
 
 #result {
@@ -190,6 +211,18 @@ body {
 
 #gift-overlay {
     z-index: 11;
+}
+
+.label.depleted {
+    opacity: 0.55;
+}
+
+.label .depleted-tag {
+    display: block;
+    font-size: 1.4vmin;
+    font-weight: normal;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
 }
 
 .admin-link {

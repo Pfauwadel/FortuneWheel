@@ -3,12 +3,16 @@
     const spinButton = document.getElementById('spin');
     const resultDiv = document.getElementById('result');
     const titleEl = document.getElementById('wheel-title');
+    const pointerEl = document.getElementById('pointer');
 
+    let loadedConfig = null;
     let segments = [];
     let colors = [];
     let accentColor = '#ee3126';
     let settings = {};
     let isSpinning = false;
+    let currentRotation = 0;
+    let idleTimer = null;
 
     function lightenColor(color, percent) {
         const num = parseInt(color.replace('#', ''), 16);
@@ -19,15 +23,22 @@
         return '#' + (0x1000000 + (Math.min(255, R) << 16) + (Math.min(255, G) << 8) + Math.min(255, B)).toString(16).slice(1);
     }
 
-    // Choisit un texte clair ou sombre selon la luminosité du segment, pour
-    // que le libellé reste lisible quel que soit le thème (clair ou foncé).
-    function readableTextColor(color) {
+    function colorLuminance(color) {
         const num = parseInt(color.replace('#', ''), 16);
         const r = (num >> 16) & 0xff;
         const g = (num >> 8) & 0xff;
         const b = num & 0xff;
-        const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-        return luminance > 0.6 ? '#1a1a1a' : '#ffffff';
+        return (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    }
+
+    // Choisit un texte clair ou sombre selon la luminosité du segment, pour
+    // que le libellé reste lisible quel que soit le thème (clair ou foncé).
+    function readableTextColor(color) {
+        return colorLuminance(color) > 0.6 ? '#1a1a1a' : '#ffffff';
+    }
+
+    function darkestColor(colorList) {
+        return colorList.reduce((darkest, c) => (colorLuminance(c) < colorLuminance(darkest) ? c : darkest), colorList[0]);
     }
 
     function shadeColor(color, percent) {
@@ -38,6 +49,10 @@
         const G = clamp(((num >> 8) & 0x00FF) + amt);
         const B = clamp((num & 0x0000FF) + amt);
         return '#' + (0x1000000 + (R << 16) + (G << 8) + B).toString(16).slice(1);
+    }
+
+    function isDepleted(segment) {
+        return segment.stock !== null && segment.stock !== undefined && segment.stock <= 0;
     }
 
     function generateWheel() {
@@ -107,8 +122,12 @@
         const cy = 50;
         segments.forEach((segment, index) => {
             const segmentAngle = (segment.weight / totalWeight) * 360;
+            // Un arc SVG ne peut pas boucler exactement à 360° (point de
+            // départ = point d'arrivée = tracé dégénéré, invisible) : cas
+            // réel dès qu'il ne reste qu'un seul segment sur la roue.
+            const arcSweep = segmentAngle >= 359.99 ? 359.99 : segmentAngle;
             const startRad = (currentAngle * Math.PI / 180);
-            const endRad = ((currentAngle + segmentAngle) * Math.PI / 180);
+            const endRad = ((currentAngle + arcSweep) * Math.PI / 180);
 
             const x1 = cx + radius * Math.cos(startRad);
             const y1 = cy + radius * Math.sin(startRad);
@@ -116,11 +135,13 @@
             const y2 = cy + radius * Math.sin(endRad);
 
             const largeArc = (segmentAngle > 180) ? 1 : 0;
+            const depleted = isDepleted(segment);
 
             const pathD = `M ${cx} ${cy} L ${x1} ${y1} A ${radius} ${radius} 0 ${largeArc} 1 ${x2} ${y2} Z`;
             const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
             path.setAttribute('d', pathD);
-            path.setAttribute('fill', `url(#grad${index})`);
+            path.setAttribute('fill', depleted ? '#9a9a9a' : `url(#grad${index})`);
+            path.setAttribute('opacity', depleted ? '0.4' : '1');
             path.setAttribute('stroke', 'url(#strokeGrad)');
             path.setAttribute('stroke-width', '0.5');
             path.setAttribute('pointer-events', 'none');
@@ -134,8 +155,9 @@
             const iconSvg = segment.imageUrl
                 ? `<img src="${segment.imageUrl}" alt="" style="width:3.4vmin;height:3.4vmin;object-fit:contain;display:block;margin:0 auto 2px;">`
                 : window.IconLibrary.renderSVG(segment.iconId, { size: 0 }).replace('<svg ', '<svg style="width:3.4vmin;height:3.4vmin;display:block;margin:0 auto 2px;color:' + textColor + ';" ');
+            const depletedTag = depleted ? '<span class="depleted-tag">Épuisé</span>' : '';
             labelHtml += `
-                <div class="label" style="
+                <div class="label${depleted ? ' depleted' : ''}" style="
                     position: absolute;
                     left: 50%;
                     top: 50%;
@@ -150,7 +172,7 @@
                     overflow: hidden;
                     pointer-events: none;
                     z-index: 1;
-                ">${iconSvg}${segment.description}</div>
+                ">${iconSvg}${segment.description}${depletedTag}</div>
             `;
 
             segment.segmentRange = [currentAngle, currentAngle + segmentAngle];
@@ -161,55 +183,138 @@
         wheel.insertAdjacentHTML('beforeend', labelHtml);
     }
 
-    function findGiftByAngle(angle) {
-        angle = ((angle % 360) + 360) % 360;
+    function pickWeightedSegment(eligible) {
+        const totalWeight = eligible.reduce((sum, s) => sum + s.weight, 0);
+        let r = Math.random() * totalWeight;
+        for (const seg of eligible) {
+            if (r < seg.weight) return seg;
+            r -= seg.weight;
+        }
+        return eligible[eligible.length - 1];
+    }
+
+    function findSegmentIndexByAngle(angle) {
         for (let i = 0; i < segments.length; i++) {
             const [start, end] = segments[i].segmentRange;
-            if (angle >= start && angle < end) {
-                return segments[i];
-            }
+            if (angle >= start && angle < end) return i;
         }
-        return null;
+        return -1;
+    }
+
+    // Suit la rotation réelle de la roue pendant l'animation pour jouer un
+    // "tick" (son + rebond du pointeur) à chaque frontière de segment
+    // franchie — indépendant de la courbe d'accélération CSS.
+    function watchTicks(durationMs) {
+        if (segments.length === 0) return;
+        let lastIndex = -1;
+        const start = performance.now();
+
+        function frame(now) {
+            if (now - start > durationMs + 80) return;
+            const style = window.getComputedStyle(wheel);
+            const match = style.transform && style.transform.match(/matrix\(([^)]+)\)/);
+            if (match) {
+                const parts = match[1].split(',').map(Number);
+                const angleRad = Math.atan2(parts[1], parts[0]);
+                let angle = 360 - (angleRad * (180 / Math.PI));
+                if (angle < 0) angle += 360;
+                const index = findSegmentIndexByAngle(angle);
+                if (lastIndex !== -1 && index !== -1 && index !== lastIndex) {
+                    if (settings.soundEnabled !== false) window.SoundFX.play('tick');
+                    if (pointerEl) {
+                        pointerEl.classList.remove('tick');
+                        void pointerEl.offsetWidth; // force le reflow pour rejouer l'animation CSS
+                        pointerEl.classList.add('tick');
+                    }
+                }
+                lastIndex = index;
+            }
+            requestAnimationFrame(frame);
+        }
+        requestAnimationFrame(frame);
     }
 
     function spin() {
         if (isSpinning) return;
 
+        const eligible = segments.filter((s) => !isDepleted(s));
+        if (eligible.length === 0) {
+            resultDiv.textContent = 'Tous les lots sont épuisés.';
+            return;
+        }
+
         isSpinning = true;
         spinButton.disabled = true;
+        spinButton.classList.remove('attract');
         resultDiv.textContent = '';
 
-        const minTurns = settings.spinMinTurns || 5;
-        const maxTurns = settings.spinMaxTurns || 10;
-        const numSpins = minTurns + Math.random() * (maxTurns - minTurns);
-        const extraAngle = Math.random() * 360;
-        const totalRotation = numSpins * 360 + extraAngle;
+        const winner = pickWeightedSegment(eligible);
+        const [start, end] = winner.segmentRange;
+        const span = end - start;
+        const margin = span * 0.15;
+        const pointAngle = start + margin + Math.random() * Math.max(0, span - margin * 2);
 
+        const minTurns = Math.max(1, Math.round(settings.spinMinTurns || 5));
+        const maxTurns = Math.max(minTurns, Math.round(settings.spinMaxTurns || 10));
+        const extraTurns = minTurns + Math.floor(Math.random() * (maxTurns - minTurns + 1));
+
+        const targetMod = (360 - pointAngle + 360) % 360;
+        const completedTurns = Math.floor(currentRotation / 360);
+        let totalRotation = (completedTurns + extraTurns) * 360 + targetMod;
+        if (totalRotation <= currentRotation) totalRotation += 360;
+        currentRotation = totalRotation;
+
+        if (settings.soundEnabled !== false) window.SoundFX.play('spin');
         wheel.style.transform = `rotate(${totalRotation}deg)`;
+        watchTicks(3000);
 
-        const handler = () => {
-            const finalStyle = window.getComputedStyle(wheel);
-            const matrixStr = finalStyle.transform;
-            if (matrixStr === 'none') {
-                isSpinning = false;
-                spinButton.disabled = false;
-                return;
-            }
-            const values = matrixStr.split('matrix(')[1].split(')')[0].split(',').map(parseFloat);
-            const a = values[0];
-            const b = values[1];
-            const angleRad = Math.atan2(b, a);
-            let angle = 360 - (angleRad * (180 / Math.PI));
-            if (angle < 0) angle += 360;
-            const selectedGift = findGiftByAngle(angle);
-            if (selectedGift) {
-                resultDiv.textContent = `Résultat : ${selectedGift.description} !`;
-                showGiftImage(selectedGift);
-            }
-            isSpinning = false;
-            spinButton.disabled = false;
-        };
+        const handler = () => finishSpin(winner);
         wheel.addEventListener('transitionend', handler, { once: true });
+    }
+
+    function finishSpin(winner) {
+        resultDiv.textContent = `Résultat : ${winner.description} !`;
+
+        if (winner.stock !== null && winner.stock !== undefined) {
+            winner.stock = Math.max(0, winner.stock - 1);
+            if (loadedConfig) window.ConfigStore.saveConfig(loadedConfig);
+            generateWheel();
+        }
+
+        showGiftImage(winner);
+
+        if (settings.confettiEnabled !== false) triggerConfetti();
+        if (settings.soundEnabled !== false) window.SoundFX.play('win');
+
+        isSpinning = false;
+        spinButton.disabled = false;
+        resetIdleTimer();
+    }
+
+    function triggerConfetti() {
+        const count = 100;
+        for (let i = 0; i < count; i++) {
+            const piece = document.createElement('div');
+            const size = Math.random() * 8 + 4;
+            const color = colors[Math.floor(Math.random() * colors.length)];
+            piece.style.cssText = `
+                position: fixed; left: 50%; top: 40%;
+                width: ${size}px; height: ${size}px; background: ${color};
+                border-radius: ${Math.random() > 0.5 ? '50%' : '2px'};
+                pointer-events: none; z-index: 10000;
+            `;
+            document.body.appendChild(piece);
+
+            const anim = piece.animate([
+                { transform: 'translate(-50%, -50%) scale(0)', opacity: 1 },
+                { transform: `translate(${Math.random() * 200 - 100}vw, ${Math.random() * 140 - 30}vh) rotate(${Math.random() * 720}deg) scale(1)`, opacity: 0.9, offset: 0.7 },
+                { transform: `translate(${Math.random() * 220 - 110}vw, ${Math.random() * 160}vh) rotate(${Math.random() * 1080}deg) scale(1)`, opacity: 0 }
+            ], {
+                duration: 1600 + Math.random() * 1200,
+                easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+            });
+            anim.onfinish = () => piece.remove();
+        }
     }
 
     function showGiftImage(gift) {
@@ -268,8 +373,21 @@
         }, displayMs);
     }
 
+    // Mode attraction : après une période d'inactivité, fait légèrement
+    // pulser le bouton pour inciter les passants d'un salon à jouer.
+    function resetIdleTimer() {
+        spinButton.classList.remove('attract');
+        if (idleTimer) clearTimeout(idleTimer);
+        if (settings.attractModeEnabled === false) return;
+        const seconds = settings.attractIdleSeconds || 45;
+        idleTimer = setTimeout(() => {
+            if (!isSpinning) spinButton.classList.add('attract');
+        }, seconds * 1000);
+    }
+
     async function init() {
         const config = await window.ConfigStore.loadConfig();
+        loadedConfig = config;
         settings = config.settings;
         segments = config.segments;
 
@@ -284,11 +402,26 @@
 
         document.documentElement.style.setProperty('--accent-color', accentColor);
         document.documentElement.style.setProperty('--accent-color-dark', shadeColor(accentColor, -25));
+        document.documentElement.style.setProperty('--overlay-color', darkestColor(colors));
+        document.documentElement.style.setProperty('--title-color', accentColor);
+
+        // Quand la config vient du localStorage (pas de config.json à
+        // récupérer), cette résolution se termine si vite qu'elle peut
+        // arriver avant que background.js ait fini de charger et d'écouter
+        // l'évènement ci-dessous. On expose donc aussi le résultat sur
+        // window, que background.js consulte directement à son chargement.
+        window.__wheelTheme = { colors, accentColor };
+        window.dispatchEvent(new CustomEvent('wheel:theme-ready', { detail: { colors, accentColor } }));
 
         generateWheel();
+        resetIdleTimer();
     }
 
     spinButton.addEventListener('click', spin);
+
+    ['click', 'mousemove', 'keydown', 'touchstart'].forEach((evt) => {
+        window.addEventListener(evt, resetIdleTimer, { passive: true });
+    });
 
     // Si la config est modifiée dans un autre onglet (admin.html), on
     // régénère la roue pour refléter le changement immédiatement.

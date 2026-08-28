@@ -10,7 +10,13 @@
         minTurns: document.getElementById('setting-min-turns'),
         maxTurns: document.getElementById('setting-max-turns'),
         displayMs: document.getElementById('setting-display-ms'),
+        confetti: document.getElementById('setting-confetti'),
+        sound: document.getElementById('setting-sound'),
+        attract: document.getElementById('setting-attract'),
+        attractSeconds: document.getElementById('setting-attract-seconds'),
         themeGrid: document.getElementById('theme-grid'),
+        brandColorInput: document.getElementById('brand-color-input'),
+        generateThemeBtn: document.getElementById('generate-theme-btn'),
         customPaletteSection: document.getElementById('custom-palette-section'),
         customPaletteHint: document.getElementById('custom-palette-hint'),
         paletteList: document.getElementById('palette-list'),
@@ -18,13 +24,19 @@
         iconGallery: document.getElementById('icon-gallery'),
         segmentsBody: document.getElementById('segments-body'),
         addBlankSegment: document.getElementById('add-blank-segment'),
+        resetStocksBtn: document.getElementById('reset-stocks-btn'),
         saveBtn: document.getElementById('save-btn'),
         exportBtn: document.getElementById('export-btn'),
         importInput: document.getElementById('import-input'),
         resetBtn: document.getElementById('reset-btn'),
         previewFrame: document.getElementById('preview-frame'),
         refreshPreview: document.getElementById('refresh-preview'),
-        statusBanner: document.getElementById('status-banner')
+        statusBanner: document.getElementById('status-banner'),
+        pinStatus: document.getElementById('pin-status'),
+        pinNew: document.getElementById('pin-new'),
+        pinConfirm: document.getElementById('pin-confirm'),
+        pinSetBtn: document.getElementById('pin-set-btn'),
+        pinRemoveBtn: document.getElementById('pin-remove-btn')
     };
 
     function showStatus(message, type) {
@@ -169,6 +181,16 @@
         row.dataset.id = segment.id;
         row.dataset.iconId = segment.iconId || 'mystery';
         row.dataset.imageUrl = segment.imageUrl || '';
+        // Le stock "restant" (contrairement au stock initial) n'est jamais
+        // modifié par ce formulaire : il ne bouge qu'en jouant sur la roue,
+        // ou via "Réinitialiser les stocks" — sinon un Enregistrer ferait
+        // régresser un stock déjà entamé en cours d'évènement.
+        row.dataset.stock = segment.stock === null || segment.stock === undefined ? '' : String(segment.stock);
+
+        const initialStock = segment.initialStock === null || segment.initialStock === undefined ? '' : segment.initialStock;
+        const remainingLabel = segment.initialStock === null || segment.initialStock === undefined
+            ? ''
+            : `<span class="stock-remaining">Restant : ${segment.stock ?? segment.initialStock}</span>`;
 
         row.innerHTML = `
             <td>
@@ -177,6 +199,10 @@
             </td>
             <td><input type="text" class="segment-description" value="${segment.description}"></td>
             <td><input type="number" class="segment-weight" min="1" step="1" value="${segment.weight}"></td>
+            <td>
+                <input type="number" class="segment-stock" min="0" step="1" placeholder="Illimité" value="${initialStock}">
+                ${remainingLabel}
+            </td>
             <td>
                 <button type="button" class="btn btn-icon segment-upload" title="Image personnalisée">📷</button>
                 <button type="button" class="btn btn-icon btn-danger segment-remove" title="Supprimer">🗑</button>
@@ -224,9 +250,20 @@
         el.minTurns.value = currentConfig.settings.spinMinTurns;
         el.maxTurns.value = currentConfig.settings.spinMaxTurns;
         el.displayMs.value = currentConfig.settings.resultDisplayMs;
+        el.confetti.checked = currentConfig.settings.confettiEnabled !== false;
+        el.sound.checked = currentConfig.settings.soundEnabled !== false;
+        el.attract.checked = currentConfig.settings.attractModeEnabled !== false;
+        el.attractSeconds.value = currentConfig.settings.attractIdleSeconds || 45;
         renderThemeGrid();
         renderPalette();
         renderSegments();
+        renderPinStatus();
+    }
+
+    function renderPinStatus() {
+        el.pinStatus.textContent = window.AdminLock.hasPin()
+            ? 'PIN activé sur ce poste.'
+            : 'Aucun PIN défini — l\'administration est accessible sans code.';
     }
 
     function readFormIntoConfig() {
@@ -237,6 +274,10 @@
             Number(el.maxTurns.value) || 10
         );
         currentConfig.settings.resultDisplayMs = Number(el.displayMs.value) || 3000;
+        currentConfig.settings.confettiEnabled = el.confetti.checked;
+        currentConfig.settings.soundEnabled = el.sound.checked;
+        currentConfig.settings.attractModeEnabled = el.attract.checked;
+        currentConfig.settings.attractIdleSeconds = Number(el.attractSeconds.value) || 45;
 
         if (currentConfig.settings.themeId === 'custom') {
             currentConfig.settings.colors = Array.from(
@@ -246,13 +287,23 @@
         }
 
         const rows = Array.from(el.segmentsBody.querySelectorAll('tr'));
-        currentConfig.segments = rows.map((row) => ({
-            id: row.dataset.id,
-            description: row.querySelector('.segment-description').value.trim() || 'Lot',
-            weight: Number(row.querySelector('.segment-weight').value) || 1,
-            iconId: row.dataset.iconId || 'mystery',
-            imageUrl: row.dataset.imageUrl || ''
-        }));
+        currentConfig.segments = rows.map((row) => {
+            const stockInput = row.querySelector('.segment-stock').value;
+            const initialStock = stockInput === '' ? null : Math.max(0, Number(stockInput));
+            const preservedStock = row.dataset.stock === '' ? null : Number(row.dataset.stock);
+            return {
+                id: row.dataset.id,
+                description: row.querySelector('.segment-description').value.trim() || 'Lot',
+                weight: Number(row.querySelector('.segment-weight').value) || 1,
+                iconId: row.dataset.iconId || 'mystery',
+                imageUrl: row.dataset.imageUrl || '',
+                initialStock,
+                // Le stock restant vient de ce qui était déjà en mémoire (mis
+                // à jour par la roue elle-même) ; s'il n'existait pas encore
+                // (nouveau segment), il démarre au stock initial saisi.
+                stock: preservedStock !== null ? preservedStock : initialStock
+            };
+        });
     }
 
     function refreshPreview() {
@@ -283,6 +334,53 @@
                 imageUrl: '',
                 weight: 100
             });
+        });
+
+        el.resetStocksBtn.addEventListener('click', () => {
+            readFormIntoConfig();
+            window.ConfigStore.resetStocks(currentConfig);
+            CS.saveConfig(currentConfig);
+            renderSegments();
+            showStatus('Stocks réinitialisés à leur valeur initiale.', 'success');
+            refreshPreview();
+        });
+
+        el.generateThemeBtn.addEventListener('click', () => {
+            const generated = TL.generateFromBase(el.brandColorInput.value);
+            currentConfig.settings.themeId = 'custom';
+            currentConfig.settings.colors = generated.colors;
+            currentConfig.settings.accentColor = generated.accentColor;
+            renderThemeGrid();
+            renderPalette();
+            showStatus('Palette générée à partir de la couleur de marque.', 'success');
+        });
+
+        el.pinSetBtn.addEventListener('click', async () => {
+            const pin = el.pinNew.value.trim();
+            if (pin.length < 4) {
+                showStatus('Le PIN doit contenir au moins 4 caractères.', 'error');
+                return;
+            }
+            if (pin !== el.pinConfirm.value.trim()) {
+                showStatus('Les deux PIN ne correspondent pas.', 'error');
+                return;
+            }
+            await window.AdminLock.setPin(pin);
+            el.pinNew.value = '';
+            el.pinConfirm.value = '';
+            renderPinStatus();
+            showStatus('PIN défini pour ce poste.', 'success');
+        });
+
+        el.pinRemoveBtn.addEventListener('click', () => {
+            if (!window.AdminLock.hasPin()) {
+                showStatus('Aucun PIN n\'est actuellement défini.', 'error');
+                return;
+            }
+            if (!confirm('Retirer le verrou PIN de l\'administration sur ce poste ?')) return;
+            window.AdminLock.removePin();
+            renderPinStatus();
+            showStatus('Verrou PIN retiré.', 'success');
         });
 
         el.saveBtn.addEventListener('click', saveConfig);

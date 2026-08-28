@@ -4,7 +4,7 @@
 //
 // Incrémenter CACHE_NAME force la mise à jour complète du cache lors du
 // prochain déploiement (ex: passer à 'kuhn-wheel-v2').
-const CACHE_NAME = 'kuhn-wheel-v3';
+const CACHE_NAME = 'kuhn-wheel-v4';
 
 const urlsToCache = [
     './',
@@ -19,6 +19,8 @@ const urlsToCache = [
     './js/config-store.js',
     './js/icon-library.js',
     './js/theme-library.js',
+    './js/sound.js',
+    './js/admin-lock.js',
     './js/wheel.js',
     './js/admin.js',
     './js/background.js',

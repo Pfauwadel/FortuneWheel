@@ -18,10 +18,21 @@ Publié via GitHub Pages : voir l'onglet **About** du dépôt pour le lien, ou
 | `admin.html` | Administration : segments, images, couleurs, réglages |
 | `config.json` | Configuration par défaut, servie à tout le monde |
 | `js/config-store.js` | Chargement/sauvegarde de la config (config.json + surcharge localStorage) |
-| `js/wheel.js` | Génération et animation de la roue |
+| `js/icon-library.js` | Bibliothèque d'icônes de goodies (SVG inline) |
+| `js/theme-library.js` | Thèmes de couleurs prédéfinis + générateur de palette |
+| `js/wheel.js` | Génération, animation et tirage de la roue |
 | `js/admin.js` | Logique de l'interface d'administration |
+| `js/admin-lock.js` | Verrou PIN local de l'administration |
+| `js/sound.js` | Effets sonores synthétisés (Web Audio) |
 | `manifest.json`, `sw.js` | PWA (installation hors-ligne) |
-| `assets/` | Images par défaut + icônes de l'application |
+| `assets/` | Icônes de l'application (PWA) |
+
+## Fonctionnalités
+
+- **Thèmes** : 10 palettes prédéfinies + génération automatique d'une palette harmonieuse à partir d'une seule couleur de marque.
+- **Gestion de stock** : chaque lot peut avoir un stock initial optionnel (vide = illimité), décrémenté automatiquement à chaque gain, avec réinitialisation en un clic entre deux journées d'évènement.
+- **Animations** : confettis à la victoire, sons synthétisés (lancement/tick/victoire), mode attraction (pulsation après inactivité), toutes désactivables dans les réglages.
+- **Verrou PIN** : protège l'accès à `admin.html` sur un poste partagé. Stocké uniquement en local (jamais dans `config.json`/l'export) — ce n'est pas un mécanisme de sécurité fort ; un PIN oublié se contourne en vidant les données du site dans le navigateur.
 
 ## Modèle de configuration
 

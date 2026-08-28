@@ -15,6 +15,18 @@
 </head>
 
 <body>
+    <div id="lock-overlay" class="lock-overlay" style="display:none;">
+        <div class="lock-panel">
+            <h2>Administration verrouillée</h2>
+            <p>Entrez le code PIN pour continuer.</p>
+            <input type="password" id="lock-pin-input" inputmode="numeric" maxlength="12" autocomplete="off">
+            <div class="toolbar">
+                <button class="btn btn-primary" id="lock-submit">Déverrouiller</button>
+            </div>
+            <p class="hint" id="lock-error" style="color:#ffb3ab; display:none;">Code incorrect.</p>
+        </div>
+    </div>
+
     <div id="status-banner"></div>
 
     <header>
@@ -47,6 +59,11 @@
             <div class="field">
                 <label>Thème de couleurs</label>
                 <div id="theme-grid" class="theme-grid"></div>
+                <p class="hint">Ou générer une palette harmonieuse à partir d'une seule couleur de marque :</p>
+                <div class="toolbar" style="margin-top:0;">
+                    <input type="color" id="brand-color-input" value="#ee3126">
+                    <button class="btn" id="generate-theme-btn">🎨 Générer la palette</button>
+                </div>
                 <p class="hint" id="custom-palette-hint" style="display:none;">
                     Mode personnalisé : réglez chaque couleur de la palette manuellement.
                 </p>
@@ -57,6 +74,26 @@
                     </div>
                 </div>
             </div>
+        </section>
+
+        <section>
+            <h2>Animations &amp; sons</h2>
+            <div class="field-row">
+                <label class="field" style="flex-direction:row; align-items:center; gap:8px;">
+                    <input type="checkbox" id="setting-confetti"> Confettis à la victoire
+                </label>
+                <label class="field" style="flex-direction:row; align-items:center; gap:8px;">
+                    <input type="checkbox" id="setting-sound"> Sons
+                </label>
+                <label class="field" style="flex-direction:row; align-items:center; gap:8px;">
+                    <input type="checkbox" id="setting-attract"> Mode attraction
+                </label>
+                <div class="field">
+                    <label for="setting-attract-seconds">Secondes avant incitation</label>
+                    <input type="number" id="setting-attract-seconds" min="5" step="5">
+                </div>
+            </div>
+            <p class="hint">Le mode attraction fait légèrement pulser le bouton après une période d'inactivité, pour inciter les passants d'un salon à jouer.</p>
         </section>
 
         <section>
@@ -72,15 +109,42 @@
                     <tr>
                         <th style="width:56px;">Icône</th>
                         <th>Description</th>
-                        <th style="width:120px;">Poids</th>
+                        <th style="width:100px;">Poids</th>
+                        <th style="width:140px;">Stock initial</th>
                         <th style="width:110px;"></th>
                     </tr>
                 </thead>
                 <tbody id="segments-body"></tbody>
             </table>
-            <p class="hint">Le "poids" détermine la probabilité relative du segment (ex : deux segments à poids 100 ont la même chance ; un segment à 50 a deux fois moins de chance qu'un segment à 100).</p>
+            <p class="hint">Le "poids" détermine la probabilité relative du segment parmi les lots encore en stock (ex : deux segments à poids 100 ont la même chance ; un segment à 50 a deux fois moins de chance qu'un segment à 100).</p>
+            <p class="hint">Le "stock initial" est optionnel (laisser vide = illimité). Le stock restant se décrémente automatiquement à chaque gain sur la roue, et se reconstitue avec le bouton ci-dessous.</p>
             <div class="toolbar">
                 <button class="btn" id="add-blank-segment">+ Segment vierge</button>
+                <button class="btn" id="reset-stocks-btn">🔄 Réinitialiser les stocks</button>
+            </div>
+        </section>
+
+        <section>
+            <h2>Sécurité</h2>
+            <p class="hint">
+                Le code PIN empêche un visiteur du salon d'ouvrir l'administration par erreur. Ce n'est pas un
+                mécanisme de sécurité fort : il est stocké uniquement sur ce poste, jamais dans la configuration
+                exportée. Un PIN oublié se contourne en vidant les données du site dans le navigateur.
+            </p>
+            <p class="hint" id="pin-status"></p>
+            <div class="field-row">
+                <div class="field">
+                    <label for="pin-new">Nouveau PIN</label>
+                    <input type="password" id="pin-new" inputmode="numeric" maxlength="12">
+                </div>
+                <div class="field">
+                    <label for="pin-confirm">Confirmer</label>
+                    <input type="password" id="pin-confirm" inputmode="numeric" maxlength="12">
+                </div>
+            </div>
+            <div class="toolbar">
+                <button class="btn btn-primary" id="pin-set-btn">Définir / changer le PIN</button>
+                <button class="btn btn-danger" id="pin-remove-btn">Retirer le verrou</button>
             </div>
         </section>
 
@@ -110,6 +174,29 @@
         </section>
     </main>
 
+    <script src="js/admin-lock.js"></script>
+    <script>
+        (function () {
+            const overlay = document.getElementById('lock-overlay');
+            if (!window.AdminLock.hasPin() || window.AdminLock.isUnlocked()) return;
+            overlay.style.display = 'flex';
+            const input = document.getElementById('lock-pin-input');
+            const error = document.getElementById('lock-error');
+            async function tryUnlock() {
+                if (await window.AdminLock.verifyPin(input.value)) {
+                    window.AdminLock.unlockSession();
+                    overlay.style.display = 'none';
+                } else {
+                    error.style.display = 'block';
+                    input.value = '';
+                    input.focus();
+                }
+            }
+            document.getElementById('lock-submit').addEventListener('click', tryUnlock);
+            input.addEventListener('keydown', (e) => { if (e.key === 'Enter') tryUnlock(); });
+            input.focus();
+        })();
+    </script>
     <script src="js/icon-library.js"></script>
     <script src="js/theme-library.js"></script>
     <script src="js/config-store.js"></script>
