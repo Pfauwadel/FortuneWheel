@@ -81,7 +81,7 @@
     // --- Thème --------------------------------------------------------------
     function renderThemeGrid() {
         el.themeGrid.innerHTML = '';
-        const currentThemeId = currentConfig.settings.themeId || 'kuhn';
+        const currentThemeId = currentConfig.settings.themeId || 'scott';
 
         TL.list.forEach((theme) => {
             const card = document.createElement('div');
@@ -109,10 +109,10 @@
         customCard.addEventListener('click', () => {
             currentConfig.settings.themeId = 'custom';
             if (!currentConfig.settings.colors || !currentConfig.settings.colors.length) {
-                currentConfig.settings.colors = TL.get('kuhn').colors.slice();
+                currentConfig.settings.colors = TL.get('scott').colors.slice();
             }
             if (!currentConfig.settings.accentColor) {
-                currentConfig.settings.accentColor = TL.get('kuhn').accentColor;
+                currentConfig.settings.accentColor = TL.get('scott').accentColor;
             }
             renderThemeGrid();
             renderPalette();
@@ -281,7 +281,7 @@
 
     function readFormIntoConfig() {
         currentConfig.settings.title = el.title.value.trim() || 'Roue de la Fortune';
-        currentConfig.settings.hubText = el.hubText.value.trim() || 'KUHN';
+        currentConfig.settings.hubText = el.hubText.value.trim() || 'SCOTT';
         currentConfig.settings.spinMinTurns = Number(el.minTurns.value) || 5;
         currentConfig.settings.spinMaxTurns = Math.max(
             currentConfig.settings.spinMinTurns,

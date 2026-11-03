@@ -5,8 +5,8 @@
 (function () {
     const THEMES = [
         {
-            id: 'kuhn',
-            label: 'Kuhn',
+            id: 'scott',
+            label: 'Scott',
             colors: ['#ee3126', '#4a4a4a', '#d0b580', '#2e3440', '#eeece0', '#8a8a8a'],
             accentColor: '#ee3126'
         },
@@ -74,13 +74,13 @@
     // pour pouvoir les faire évoluer sans casser les configs existantes),
     // ou le thème "custom" qui garde les couleurs stockées dans settings.
     function resolve(settings) {
-        const themeId = settings.themeId || 'kuhn';
+        const themeId = settings.themeId || 'scott';
         if (themeId !== 'custom' && byId[themeId]) {
             return { colors: byId[themeId].colors.slice(), accentColor: byId[themeId].accentColor };
         }
         return {
-            colors: (settings.colors && settings.colors.length ? settings.colors : byId.kuhn.colors).slice(),
-            accentColor: settings.accentColor || byId.kuhn.accentColor
+            colors: (settings.colors && settings.colors.length ? settings.colors : byId.scott.colors).slice(),
+            accentColor: settings.accentColor || byId.scott.accentColor
         };
     }
 

@@ -13,11 +13,11 @@
     const FALLBACK_CONFIG = {
         settings: {
             title: 'Roue de la Fortune',
-            hubText: 'KUHN',
+            hubText: 'SCOTT',
             spinMinTurns: 5,
             spinMaxTurns: 10,
             resultDisplayMs: 3000,
-            themeId: 'kuhn',
+            themeId: 'scott',
             confettiEnabled: true,
             soundEnabled: true,
             attractModeEnabled: true,
@@ -49,6 +49,10 @@
         const normalized = cloneConfig(FALLBACK_CONFIG);
         if (config && config.settings) {
             Object.assign(normalized.settings, config.settings);
+            // Poste déjà configuré avant le renommage du thème par défaut
+            // (« kuhn » devenu « scott », moyeu « KUHN » devenu « SCOTT »).
+            if (normalized.settings.themeId === 'kuhn') normalized.settings.themeId = 'scott';
+            if (normalized.settings.hubText === 'KUHN') normalized.settings.hubText = 'SCOTT';
         }
         if (config && Array.isArray(config.segments) && config.segments.length > 0) {
             normalized.segments = config.segments.map((seg, index) => {

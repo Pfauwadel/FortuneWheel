@@ -3,8 +3,8 @@
 // une fois installée sur un poste.
 //
 // Incrémenter CACHE_NAME force la mise à jour complète du cache lors du
-// prochain déploiement (ex: passer à 'kuhn-wheel-v2').
-const CACHE_NAME = 'kuhn-wheel-v7';
+// prochain déploiement (ex: passer à 'scott-wheel-v2').
+const CACHE_NAME = 'scott-wheel-v8';
 
 const urlsToCache = [
     './',

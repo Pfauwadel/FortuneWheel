@@ -347,7 +347,7 @@
         const title = settings.title || 'Roue de la Fortune';
         if (brandEl) brandEl.textContent = title;
         document.title = title;
-        if (hubEl) hubEl.textContent = settings.hubText || 'KUHN';
+        if (hubEl) hubEl.textContent = settings.hubText || 'SCOTT';
 
         const root = document.documentElement.style;
         root.setProperty('--accent-color', accentColor);

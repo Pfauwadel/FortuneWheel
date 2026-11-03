@@ -1,11 +1,11 @@
 {
   "settings": {
     "title": "Roue de la Fortune",
-    "hubText": "KUHN",
+    "hubText": "SCOTT",
     "spinMinTurns": 5,
     "spinMaxTurns": 10,
     "resultDisplayMs": 3000,
-    "themeId": "kuhn",
+    "themeId": "scott",
     "wheelToneMode": "duo"
   },
   "segments": [
